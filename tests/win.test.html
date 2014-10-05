@@ -52,11 +52,19 @@
 					y+=30;
 
 					b1.bind(function() {
-						zebra.ui.showWindow(c, "mdi", makeWin());
+						zebra.ui.showWindow(c, "mdi", makeWin(), 
+                            { 
+                                winOpened: function(layer, win, isOpened) {
+                                    console.log("!!! " + isOpened);
+                                }
+                            }
+                        );
 					});
 
 					b2.bind(function() {
-						zebra.ui.showWindow(c, "modal", makeWin());
+						zebra.ui.showWindow(c, "modal", makeWin(), function(a) {
+                            console.log("!!!");
+                        });
 					});
 
 					return w1;

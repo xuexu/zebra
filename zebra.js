@@ -268,6 +268,8 @@ pkg.getPropertySetter = function(obj, name) {
     return (typeof m  === "function") ? m : null;
 };
 
+// target - is object whose propeties have to populated
+// p      - properties
 pkg.properties = function(target, p) {
     for(var k in p) {
         if (k[0] != '$' && p.hasOwnProperty(k) && typeof p[k] !== 'function') {
@@ -2572,7 +2574,7 @@ pkg.Bag = zebra.Class([
             }
 
             var content = null;
-            try { content = JSON.parse(s); }
+            try { content = zebra.isString(s) ? JSON.parse(s) : s; }
             catch(e) {
                 throw new Error("JSON loading error: " + e);
             }
@@ -2635,7 +2637,7 @@ pkg.Bag = zebra.Class([
     },
 
     function loadByUrl(url) {
-        this.loadByUrl(url, true);
+        return this.loadByUrl(url, true);
     },
 
     /**
@@ -3359,6 +3361,7 @@ pkg.TreeModel = Class([
                 item.parent.kids.splice(item.parent.kids.indexOf(item), 1);
                 item.parent = null;
             }
+
             this._.itemRemoved(this, item);
         };
 
@@ -3425,7 +3428,6 @@ pkg.Matrix = Class([
           * @param {Object}  old a previous cell value
           */
 
-
           /**
            * Fired when the matrix data has been re-ordered. 
            
@@ -3446,7 +3448,6 @@ pkg.Matrix = Class([
            * 
            */
        
-
         /**
          * Get a matrix model cell value at the specified row and column
          * @method get
@@ -3462,8 +3463,8 @@ pkg.Matrix = Class([
         };
 
         /**
-         * Set the specified by row and column cell value. If the specified row or column is greater than 
-         * the matrix model has the model size will be adjusted to new one. 
+         * Set the specified by row and column cell value. If the specified row or column
+         * is greater than the matrix model has the model size will be adjusted to new one.
          * @method put
          * @param  {Integer} row a cell row
          * @param  {Integer} col a cell column
@@ -3473,6 +3474,7 @@ pkg.Matrix = Class([
             var nr = this.rows, nc = this.cols;
             if (row >= nr) nr += (row - nr + 1);
             if (col >= nc) nc += (col - nc + 1);
+
             this.setRowsCols(nr, nc);
             var old = this.objs[row] ? this.objs[row][col] : undefined;
             if (obj != old) {
@@ -3482,14 +3484,16 @@ pkg.Matrix = Class([
         };
 
         /**
-         * Set the specified by index cell value. The index identifies cell starting from [0,0] cell till [rows,columns]. 
-         * If the index is greater than size of model the model size will be adjusted to new one.   
+         * Set the specified by index cell value. The index identifies cell starting from [0,0]
+         * cell till [rows,columns]. If the index is greater than size of model the model size
+         * will be adjusted to new one.
          * @method puti
          * @param  {Integer} i a cell row
          * @param  {Object} obj a new cell value
          */
         this.puti = function(i, obj){
-            this.put(~~(i / this.cols), i % this.cols, obj);
+            this.put( ~~(i / this.cols),
+                         i % this.cols, obj);
         };
 
         /**
@@ -3500,7 +3504,9 @@ pkg.Matrix = Class([
          */
         this.setRowsCols = function(rows, cols){
             if (rows != this.rows || cols != this.cols){
-                var pc = this.cols, pr = this.rows;
+                var pc = this.cols,
+                    pr = this.rows;
+
                 this.rellocate(rows, cols);
                 this.cols = cols;
                 this.rows = rows;
@@ -3517,7 +3523,9 @@ pkg.Matrix = Class([
          */
         this.rellocate = function(r, c) {
             if (r >= this.rows) {
-                for(var i=this.rows; i < r; i++)  this.objs[i] = [];
+                for(var i=this.rows; i < r; i++) {
+                    this.objs[i] = [];
+                }
             }
         };
 
@@ -3526,17 +3534,22 @@ pkg.Matrix = Class([
          * @method setRows
          * @param  {Integer} rows a new number of rows
          */
-        this.setRows = function(rows) { this.setRowsCols(rows, this.cols); };
+        this.setRows = function(rows) {
+            this.setRowsCols(rows, this.cols);
+        };
 
         /**
          * Set the given number of columns the model has to have.
          * @method setCols
          * @param  {Integer} cols a new number of columns
          */
-        this.setCols = function(cols) { this.setRowsCols(this.rows, cols); };
+        this.setCols = function(cols) {
+            this.setRowsCols(this.rows, cols);
+        };
 
         /**
-         * Remove specified number of rows from the model starting from the given row.
+         * Remove specified number of rows from the model starting
+         * from the given row.
          * @method removeRows
          * @param  {Integer}  begrow a start row 
          * @param  {Integer} count  a number of rows to be removed
@@ -3552,6 +3565,7 @@ pkg.Matrix = Class([
                     this.objs[i][j] = null;
                 }
             }
+
             this.rows -= count;
             this._.matrixResized(this, this.rows + count, this.cols);
         };
@@ -3574,6 +3588,7 @@ pkg.Matrix = Class([
                     this.objs[j][i] = null;
                 }
             }
+
             this.cols -= count;
             this._.matrixResized(this, this.rows, this.cols + count);
         };
@@ -4652,25 +4667,30 @@ pkg.HORIZONTAL  = 32;
 pkg.VERTICAL    = 64;
 pkg.TEMPORARY   = 128;
 
-pkg.USE_PS_SIZE = 512;
+pkg.UsePsSize   = pkg.USE_PS_SIZE = 512;
 pkg.STRETCH     = 256;
 
-pkg.TLEFT  = pkg.LEFT  | pkg.TOP;
-pkg.TRIGHT = pkg.RIGHT | pkg.TOP;
-pkg.BLEFT  = pkg.LEFT  | pkg.BOTTOM;
-pkg.BRIGHT = pkg.RIGHT | pkg.BOTTOM;
-
+pkg.TopLeft     = pkg.LEFT  | pkg.TOP;
+pkg.TopRight    = pkg.RIGHT | pkg.TOP;
+pkg.BottomLeft  = pkg.LEFT  | pkg.BOTTOM;
+pkg.BottomRight = pkg.RIGHT | pkg.BOTTOM;
 
 // collect constraints into a separate dictionary
 var $ctrs = {};
 for(var k in pkg) {
     if (pkg.hasOwnProperty(k) && /^\d+$/.test(pkg[k])) {
+        $ctrs[k] = pkg[k];
         $ctrs[k.toUpperCase()] = pkg[k];
+        var lc = k.toLowerCase();
+        $ctrs[lc] = pkg[k];
+        $ctrs[lc[0].toUpperCase() + lc.substring(1)] = pkg[k];
     }
 }
 
 pkg.$constraints = function(v) {
-    return zebra.isString(v) ? $ctrs[v.toUpperCase()] : v;
+    return (  v != null &&
+             (typeof v === "string" || v.constructor === String)) &&
+            $ctrs[v] != null ? $ctrs[v] : v;
 };
 
 /**
@@ -4689,13 +4709,12 @@ pkg.$constraints = function(v) {
     - **CENTER** center alignment constraint
     - **HORIZONTAL** horizontal elements alignment constraint
     - **VERTICAL** vertical elements alignment constraint
-    - **TLEFT** top left alignment constraint
-    - **TRIGHT** top right alignment constraint
-    - **BLEFT** bottom left alignment constraint
-    - **BRIGHT** bottom right alignment constraint
+    - **TopLeft** top left alignment constraint
+    - **TopRight** top right alignment constraint
+    - **BottomLeft** bottom left alignment constraint
+    - **BottomRight** bottom right alignment constraint
     - **STRETCH** stretch element
     - **USE_PS_SIZE** use preferred size for an element
-        
  * 
  * @module layout
  * @main layout
@@ -5539,10 +5558,13 @@ pkg.StackLayout = Class(L, [
             for(var i = 0;i < t.kids.length; i++){
                 var l = t.kids[i];
                 if (l.isVisible === true) {
-                    if (l.constraints == pkg.USE_PS_SIZE) {
+                    var ctr =l.constraints == null ? null : pkg.$constraints(l.constraints);
+
+                    if (ctr == pkg.USE_PS_SIZE) {
                         var ps = l.getPreferredSize();
                         l.setSize(ps.width, ps.height);
-                        l.setLocation(left + (ww - ps.width)/2, top + (hh - ps.height)/2);
+                        l.setLocation(left + ~~((ww - ps.width )/2),
+                                      top  + ~~((hh - ps.height)/2) );
                     }
                     else {
                         l.setSize(ww, hh);
@@ -5596,11 +5618,8 @@ pkg.BorderLayout = Class(L, [
 
         this[''] = function(hgap,vgap){
             if (arguments.length > 0) {
-                if (arguments.length == 1) {
-                    this.hgap = this.vgap = hgap;    
-                }
-                else {
-                    this.hgap = hgap;
+                this.hgap = this.vgap = hgap;    
+                if (arguments.length > 1) {
                     this.vgap = vgap;
                 }
             }
@@ -5611,13 +5630,14 @@ pkg.BorderLayout = Class(L, [
             for(var i = 0; i < target.kids.length; i++){
                 var l = target.kids[i];
                 if (l.isVisible === true){
-                    switch(l.constraints) {
+                    var ctr = pkg.$constraints(l.constraints);
+                    switch(ctr) {
                        case pkg.CENTER : center = l;break;
                        case pkg.TOP    : north  = l;break;
                        case pkg.BOTTOM : south  = l;break;
                        case pkg.LEFT   : west   = l;break;
                        case pkg.RIGHT  : east   = l;break;
-                       default: throw new Error("Invalid constraints: " + l.constraints);
+                       default: throw new Error("Invalid constraints: " + ctr);
                     }
                 }
             }
@@ -5656,14 +5676,19 @@ pkg.BorderLayout = Class(L, [
         };
 
         this.doLayout = function(t){
-            var top = t.getTop(), bottom = t.height - t.getBottom(),
-                left = t.getLeft(), right = t.width - t.getRight(),
-                center = null, west = null,  east = null;
+            var top    = t.getTop(),
+                bottom = t.height - t.getBottom(),
+                left   = t.getLeft(),
+                right  = t.width - t.getRight(),
+                center = null,
+                west   = null,
+                east   = null;
 
             for(var i = 0;i < t.kids.length; i++){
                 var l = t.kids[i];
                 if (l.isVisible === true) {
-                    switch(l.constraints) {
+                    var ctr = pkg.$constraints(l.constraints);
+                    switch(ctr) {
                         case pkg.CENTER: center = l; break;
                         case pkg.TOP :
                             var ps = l.getPreferredSize();
@@ -5679,7 +5704,7 @@ pkg.BorderLayout = Class(L, [
                             break;
                         case pkg.LEFT: west = l; break;
                         case pkg.RIGHT: east = l; break;
-                        default: throw new Error("Invalid constraints: " + l.constraints);
+                        default: throw new Error("Invalid constraints: " + ctr);
                     }
                 }
             }
@@ -5743,6 +5768,7 @@ pkg.RasterLayout = Class(L, [
 
             for(var i = 0;i < c.kids.length; i++){
                 var el = c.kids[i], ww = 0, hh = 0;
+
                 if (el.isVisible === true){
                     if (usePsSize){
                         var ps = el.getPreferredSize();
@@ -5754,24 +5780,28 @@ pkg.RasterLayout = Class(L, [
                         hh = el.height;
                     }
 
-                    if ((this.flag & pkg.HORIZONTAL) > 0) ww = r - el.x;
-                    if ((this.flag & pkg.VERTICAL  ) > 0) hh = b - el.y;
+                    var ctr = el.constraints == null ? null : pkg.$constraints(el.constraints);
+
+                    if (ctr != null) {
+                        if ((ctr & pkg.HORIZONTAL)  > 0) ww = r - el.x;
+                        if ((ctr & pkg.VERTICAL)    > 0) hh = b - el.y;
+                    }
                     el.setSize(ww, hh);
 
-                    if (el.constraints) {
+                    if (ctr != null) {
                         var x = el.x, y = el.y;
-                        if (el.constraints == pkg.CENTER) {
+                        if (ctr == pkg.CENTER) {
                             x = (c.width - ww)/2;
                             y = (c.height - hh)/2;
                         }
                         else {
-                            if ((el.constraints & pkg.TOP) > 0)  y = 0;
+                            if ((ctr & pkg.TOP) > 0)  y = 0;
                             else
-                            if ((el.constraints & pkg.BOTTOM) > 0)  y = c.height - hh;
+                            if ((ctr & pkg.BOTTOM) > 0)  y = c.height - hh;
 
-                            if ((el.constraints & pkg.LEFT) > 0)  x = 0;
+                            if ((ctr & pkg.LEFT) > 0)  x = 0;
                             else
-                            if ((el.constraints & pkg.RIGHT) > 0)  x = c.width - ww;
+                            if ((ctr & pkg.RIGHT) > 0)  x = c.width - ww;
                         }
 
                         el.setLocation(x, y);
@@ -5920,6 +5950,7 @@ pkg.FlowLayout = Class(L, [
                     cc++;
                 }
             }
+
             var add = this.gap * (cc > 0 ? cc - 1 : 0);
             if (this.direction == pkg.HORIZONTAL) m.width += add;
             else m.height += add;
@@ -5942,9 +5973,11 @@ pkg.FlowLayout = Class(L, [
                 var a = c.kids[i];
                 if (a.isVisible === true){
 
-                    var d = a.getPreferredSize();
+                    var d = a.getPreferredSize(),
+                        ctr = a.constraints == null ? null : pkg.$constraints(a.constraints);
+
                     if (this.direction == pkg.HORIZONTAL){
-                        if (a.constraints === pkg.STRETCH) { 
+                        if (ctr === pkg.STRETCH) {
                             d.height = c.height - t - c.getBottom();
                         }
 
@@ -5952,7 +5985,7 @@ pkg.FlowLayout = Class(L, [
                         px += (d.width + this.gap);
                     }
                     else {
-                        if (a.constraints === pkg.STRETCH) d.width = c.width - l - c.getRight();
+                        if (ctr === pkg.STRETCH) d.width = c.width - l - c.getRight();
                         a.setLocation(px + ~~((psSize.width - d.width) / 2), py);
                         py += d.height + this.gap;
                     }
@@ -6012,9 +6045,7 @@ pkg.ListLayout = Class(L,[
                 gap = ax;
             }
 
-            if (arguments.length <= 1) {
-                ax = pkg.$constraints(pkg.STRETCH);
-            }
+            ax = (arguments.length <= 1) ? pkg.STRETCH : pkg.$constraints(ax);
 
             if (arguments.length === 0) {
                 gap = 0;
@@ -6066,8 +6097,8 @@ pkg.ListLayout = Class(L,[
                 var cc = lw.kids[i];
 
                 if (cc.isVisible === true){
-                    var d = cc.getPreferredSize(), constr = cc.constraints;
-                    if (constr == null) constr = this.ax;
+                    var d      = cc.getPreferredSize(),
+                        constr = cc.constraints == null ? this.ax : pkg.$constraints(cc.constraints);
 
                     cc.setSize    ((constr == pkg.STRETCH) ? psw
                                                            : d.width, d.height);
@@ -6284,8 +6315,8 @@ pkg.Constraints = Class([
 
         this[''] = function(ax, ay, p) {
             if (arguments.length > 0) {
-                this.ax = ax;
-                if (arguments.length > 1) this.ay = ay;
+                this.ax = pkg.$constraints(ax);
+                if (arguments.length > 1) this.ay = pkg.$constraints(ay);
                 if (arguments.length > 2) this.setPadding(p);
             }
         };
@@ -7036,7 +7067,7 @@ pkg.GridLayout = Class(L, [
     ]);
 })(zebra("ui"));
 
-(function(pkg, Class, Interface) {
+(function(pkg, Class) {
 
 /**
  * Zebra UI. The UI is powerful way to create any imaginable
@@ -7101,9 +7132,10 @@ pkg.$view = function(v) {
     if (v == null || v.paint != null) return v;
 
     if (zebra.isString(v)) {
+        if (v[0] == "'") return new pkg.StringRender(v.substring(1, v.length-1));
         return rgb.hasOwnProperty(v) ? rgb[v]
-                                     : (pkg.borders && pkg.borders.hasOwnProperty(v) ? pkg.borders[v]
-                                                                                     : new rgb(v));
+                                     : (pkg.borders != null && pkg.borders.hasOwnProperty(v) ? pkg.borders[v]
+                                                                                             : new rgb(v));
     }
 
     if (Array.isArray(v)) {
@@ -7114,9 +7146,9 @@ pkg.$view = function(v) {
         return new pkg.ViewSet(v);
     }
 
-    v = new pkg.View();
-    v.paint = f;
-    return v;
+    var vv = new pkg.View();
+    vv.paint = v;
+    return vv;
 };
 
 /**
@@ -7303,7 +7335,7 @@ pkg.Sunken = Class(pkg.View, [
         this.$this(pkg.lightBrColor, pkg.midBrColor, pkg.darkBrColor);
     },
 
-    function (brightest,middle,darkest) {
+    function(brightest, middle, darkest) {
         /**
          * Brightest border line color
          * @attribute brightest
@@ -7646,7 +7678,7 @@ pkg.Gradient = Class(pkg.View, [
         };
 
         this.paint = function(g,x,y,w,h,dd){
-            var d = (this.orientation == L.HORIZONTAL? [0,1]: [1,0]),
+            var d  = (this.orientation == L.HORIZONTAL? [0,1]: [1,0]),
                 x1 = x * d[1],
                 y1 = y * d[0],
                 x2 = (x + w - 1) * d[1],
@@ -8094,14 +8126,12 @@ rgb.prototype.paint = function(g,x,y,w,h,d) {
             rx = x > t.x ? x : t.x,
             rw = Math.min(x + w, t.x + t.width) - rx;
 
-        if (rw <= 0) return;
+        if (rw > 0)  {
+            var ry = y > t.y ? y : t.y;
+                rh = Math.min(y + h, t.y + t.height) - ry;
 
-        var ry = y > t.y ? y : t.y;
-            rh = Math.min(y + h, t.y + t.height) - ry;
-
-        if (rh <= 0) return;
-
-        g.fillRect(rx, ry, rw, rh);
+            if (rh > 0) g.fillRect(rx, ry, rw, rh);
+        }
     }
     else {
         g.fillRect(x, y, w, h);
@@ -8112,7 +8142,7 @@ rgb.prototype.getPreferredSize = function() {
     return { width:0, height:0 };
 };
 
-pkg.getPreferredSize = function(l) {
+pkg.$getPS = function(l) {
     return l != null && l.isVisible === true ? l.getPreferredSize()
                                              : { width:0, height:0 };
 };
@@ -8194,6 +8224,8 @@ pkg.Font = function(name, style, size) {
                      size, 'px ',
                      name
                  ].join('');
+
+        this.name = name;
     }
     $fmText.style.font = this.s;
 
@@ -8203,7 +8235,7 @@ pkg.Font = function(name, style, size) {
      * @readOnly
      * @type {Integer}
      */
-    this.height = $fmText.offsetHeight;
+    this.height =  $fmText.offsetHeight;
 
     //!!!
     // Something weird is going sometimes in IE10 !
@@ -8284,9 +8316,13 @@ pkg.Cursor = {
  * any added to the panel zebra.ui.Button component will not react on any input
  * event:
 
-        // declare composite panel class that inherits standard zebra
-        // panel class and implements Composite interface
-        var CompositePan = zebra.Class(zebra.ui.Panel, zebra.ui.Composite, []);
+        // declare composite panel class that set "catchInput"
+        // property to true
+        var CompositePan = zebra.Class(zebra.ui.Panel, [
+            function $prototype() {
+                this.catchInput = true;
+            }
+        ]);
 
         // instantiate an instance
         var cp = new CompositePan(new zebra.layout.FlowLayout());
@@ -8301,9 +8337,9 @@ pkg.Cursor = {
  *
 
         // declare composite panel class that inherits standard zebra
-        // panel class, implements Composite interface and implements
-        // catchInput method to make first kid not event transparent
-        var CompositePan = zebra.Class(zebra.ui.Panel, zebra.ui.Composite, [
+        // panel class and implement catchInput method to make first
+        // kid not event transparent
+        var CompositePan = zebra.Class(zebra.ui.Panel, [
             function catchInput(kid) {
                 // make first kid not event transparent
                 return this.kids.length === 0 || this.kids[0] == kid;
@@ -8311,21 +8347,7 @@ pkg.Cursor = {
         ]);
 
         ...
-
- * @class zebra.ui.Composite
- * @interface
  */
-
-/**
- * The method is called to ask if the given children UI component
- * has to be input events transparent
- * @optional
- * @param {zebra.ui.Panel} c a children UI component
- * @return {Boolean} true if the given children component has
- * to be input events transparent
- * @method catchInput
- */
-var Composite = pkg.Composite = Interface(),
 
 /**
  * Input event class. Input event is everything what is bound to user
@@ -8831,9 +8853,21 @@ context.drawDashLine = function(x,y,x2,y2) {
     ctx.stroke();
 };
 
-pkg.makeFullyVisible = function(d,c){
-    var right = d.getRight(), top = d.getTop(), bottom = d.getBottom(),
-        left = d.getLeft(), xx = c.x, yy = c.y, ww = c.width, hh = c.height;
+pkg.makeFullyVisible = function(d, c) {
+    if (arguments.length === 1) {
+        c = d;
+        d = c.parent;
+    }
+
+    var right  = d.getRight(),
+        top    = d.getTop(),
+        bottom = d.getBottom(),
+        left   = d.getLeft(),
+        xx     = c.x,
+        yy     = c.y,
+        ww     = c.width,
+        hh     = c.height;
+
     if (xx < left) xx = left;
     if (yy < top)  yy = top;
     if (xx + ww > d.width - right) xx = d.width + right - ww;
@@ -9428,10 +9462,9 @@ var CL = pkg.Panel = Class(L.Layoutable, [
                 return null;
             }
 
-            var k = this.kids;
-            if (k.length > 0){
-                for(var i = k.length; --i >= 0; ){
-                    var d = k[i];
+            if (this.kids.length > 0){
+                for(var i = this.kids.length; --i >= 0; ){
+                    var d = this.kids[i];
                     d = d.getComponentAt(x - d.x, y - d.y);
                     if (d != null) return d;
                 }
@@ -9788,12 +9821,7 @@ var CL = pkg.Panel = Class(L.Layoutable, [
                 for(var k in kids) {
                     if (kids.hasOwnProperty(k)) {
                         var ctr = L.$constraints(k);
-                        if (ctr != null) {
-                            this.add(L[k], kids[k]);
-                        }
-                        else {
-                            this.add(k, kids[k]);
-                        }
+                        this.add(ctr, kids[k]);
                     }
                 }
             }
@@ -9975,7 +10003,7 @@ pkg.BaseLayer = Class(pkg.Panel, [
          *  at this location
          *  @method isLayerActiveAt
          */
-        
+
 
         this.getFocusRoot = function(child) {
             return this;
@@ -10319,7 +10347,8 @@ pkg.PaintManager = Class(pkg.Manager, [
         };
 
         this.paint = function(g,c){
-            var dw = c.width, dh = c.height, ts = g.stack[g.counter]; //!!! replace getTopStack() to optimize;
+            var dw = c.width, dh = c.height, ts = g.stack[g.counter];
+
             if (dw !== 0      &&
                 dh !== 0      &&
                 ts.width > 0  &&
@@ -10334,7 +10363,7 @@ pkg.PaintManager = Class(pkg.Manager, [
                 g.translate(c.x, c.y);
                 g.clipRect(0, 0, dw, dh);
 
-                ts = g.stack[g.counter]; // replace getTopStack() to optimize;
+                ts = g.stack[g.counter];
 
                 var c_w = ts.width, c_h = ts.height;
                 if (c_w > 0 && c_h > 0) {
@@ -10421,7 +10450,7 @@ pkg.PaintManImpl = Class(pkg.PaintManager, [
                     right  = c.getRight();
 
                 if (left + right + top + bottom > 0) {
-                    var ts = g.stack[g.counter]; // replace g.getTopStack() to optimize
+                    var ts = g.stack[g.counter];
 
                     if (ts.width > 0 && ts.height > 0) {
                         var cx   = ts.x,
@@ -10578,23 +10607,24 @@ pkg.FocusManager = Class(pkg.Manager, [
                   (typeof c.canHaveFocus == "function" && c.canHaveFocus());
         };
 
-        // looking recursively a focusable component among children components of 
-        // the given target  starting from the specified by index kid with the 
+        // looking recursively a focusable component among children components of
+        // the given target  starting from the specified by index kid with the
         // given direction (forward or backward lookup)
         this.fd = function(t,index,d) {
             if (t.kids.length > 0){
-                var isNComposite = (instanceOf(t, Composite) === false);
+                var isNComposite = t.catchInput == null || t.catchInput == false;
                 for(var i = index; i >= 0 && i < t.kids.length; i += d) {
                     var cc = t.kids[i];
 
-                    // check if the current children component satisfies 
-                    // conditions it can grab focus or any deeper in hierarchy 
-                    // component that can grab the focus exist  
+                    // check if the current children component satisfies
+                    // conditions it can grab focus or any deeper in hierarchy
+                    // component that can grab the focus exist
                     if (cc.isEnabled === true                                           &&
                         cc.isVisible === true                                           &&
                         cc.width      >  0                                              &&
                         cc.height     >  0                                              &&
-                        (isNComposite || (t.catchInput && t.catchInput(cc) === false))  &&
+                        (isNComposite || (t.catchInput != true       &&
+                                          t.catchInput(cc) === false)  )                &&
                         ( (cc.canHaveFocus === true || (cc.canHaveFocus !=  null  &&
                                                         cc.canHaveFocus !== false &&
                                                         cc.canHaveFocus())            ) ||
@@ -10608,7 +10638,7 @@ pkg.FocusManager = Class(pkg.Manager, [
             return null;
         };
 
-        // find next focusable component 
+        // find next focusable component
         // c - component starting from that a next focusable component has to be found
         // d - a direction of next focusable component lookup: 1 (forward) or -1 (backward)
         this.ff = function(c, d){
@@ -11022,22 +11052,17 @@ pkg.EventManager = Class(pkg.Manager, [
         // destination is component itself or one of his composite parent.
         // composite component is a component that grab control from his
         // children component. to make a component composite
-        // it has to implement Composite interface. If composite component
+        // it has to implement catchInput field or method. If composite component
         // has catchInput method it will be called
-        // to clarify if the composite component takes control for the given kid.
+        // to detect if the composite component takes control for the given kid.
         // composite components can be embedded (parent composite can take
         // control on its child composite component)
         this.getEventDestination = function(c) {
             if (c == null) return null;
+
             var p = c;
             while ((p = p.parent) != null) {
-                // !!! instanceOf is replaced with
-                // !!! dirty trick since mouse event is fired very intensive
-                if ( p.$clazz != null &&
-                     p.$clazz.$parents != null &&
-                     p.$clazz.$parents[Composite] == true &&
-                    (p.catchInput == null || p.catchInput(c)))
-                {
+                if (p.catchInput != null && (p.catchInput === true || (p.catchInput !== false && p.catchInput(c)))) {
                     c = p;
                 }
             }
@@ -11093,7 +11118,6 @@ pkg.EventManager = Class(pkg.Manager, [
                     t.childInputEvent(e);
                 }
             }
-
 
             return b;
         };
@@ -11355,14 +11379,14 @@ pkg.zCanvas = Class(pkg.Panel, [
                 var fo = pkg.focusManager.focusOwner;
                 if (fo != null) {
                     KE_STUB.reset(fo, KE.TYPED, e.keyCode, String.fromCharCode(e.charCode), km(e));
-                    if (EM.fireInputEvent(KE_STUB)) e.preventDefault();
+                    if (EM.fireInputEvent(KE_STUB) === true) e.preventDefault();
                 }
             }
 
             if (e.keyCode < 47) e.preventDefault();
         };
 
-        this.$keyPressed = function(e){
+        this.$keyPressed = function(e) {
             var code = $keyPressedCode = (e.which || e.keyCode || 0), m = km(e), b = false;
 
             // FF sets keyCode to zero for some diacritic characters
@@ -11381,7 +11405,7 @@ pkg.zCanvas = Class(pkg.Panel, [
 
             var focusOwner = pkg.focusManager.focusOwner;
             if (pkg.clipboardTriggerKey > 0          &&
-                code == pkg.clipboardTriggerKey &&
+                code == pkg.clipboardTriggerKey      &&
                 focusOwner != null                   &&
                 (focusOwner.clipCopy  != null        ||
                  focusOwner.clipPaste != null           ))
@@ -11392,7 +11416,7 @@ pkg.zCanvas = Class(pkg.Panel, [
 
                 // value has to be set, otherwise some browsers (Safari) do not generate
                 // "copy" event
-                $clipboard.value="1";
+                $clipboard.value = "1";
 
                 $clipboard.select();
                 $clipboard.focus();
@@ -11439,6 +11463,7 @@ pkg.zCanvas = Class(pkg.Panel, [
             }
 
             // !!!
+            // TODO: review it
             // quick and dirty fix
             // try to track a situation when the canvas has been moved
             this.recalcOffset();
@@ -11447,11 +11472,11 @@ pkg.zCanvas = Class(pkg.Panel, [
             // zebra component the mouse pointer entered and send appropriate
             // mouse entered event to it
             if (mp == null || mp.canvas == null) {
-                var x = $meX(e, this), 
-                    y = $meY(e, this), 
+                var x = $meX(e, this),
+                    y = $meY(e, this),
                     d = this.getComponentAt(x, y);
 
-                // setup modifiers 
+                // setup modifiers
                 ME_STUB.modifiers.altKey   = e.altKey;
                 ME_STUB.modifiers.ctrlKey  = e.ctrlKey;
                 ME_STUB.modifiers.metaKey  = e.metaKey;
@@ -11483,7 +11508,7 @@ pkg.zCanvas = Class(pkg.Panel, [
         this.$mouseExited = function (id, e) {
             var mp = $mousePressedEvents[id];
 
-            // setup modifiers 
+            // setup modifiers
             ME_STUB.modifiers.altKey   = e.altKey;
             ME_STUB.modifiers.ctrlKey  = e.ctrlKey;
             ME_STUB.modifiers.metaKey  = e.metaKey;
@@ -11554,7 +11579,7 @@ pkg.zCanvas = Class(pkg.Panel, [
                         y = this.$context.tY(e.pageX - this.offx, e.pageY - this.offy),
                         m = mp.button;
 
-                        // setup modifiers 
+                        // setup modifiers
                         ME_STUB.modifiers.altKey   = e.altKey;
                         ME_STUB.modifiers.ctrlKey  = e.ctrlKey;
                         ME_STUB.modifiers.metaKey  = e.metaKey;
@@ -11582,7 +11607,7 @@ pkg.zCanvas = Class(pkg.Panel, [
                         if (d != null && d.isEnabled === true) {
                             mp.draggedComponent = d;
 
-                            // setup modifiers 
+                            // setup modifiers
                             ME_STUB.modifiers.altKey   = mp.altKey;
                             ME_STUB.modifiers.ctrlKey  = mp.ctrlKey;
                             ME_STUB.modifiers.metaKey  = mp.metaKey;
@@ -11617,13 +11642,13 @@ pkg.zCanvas = Class(pkg.Panel, [
                 var x = this.$context.tX(e.pageX - this.offx, e.pageY - this.offy),
                     y = this.$context.tY(e.pageX - this.offx, e.pageY - this.offy),
                     d = this.getComponentAt(x, y);
-              
-                // setup modifiers 
+
+                // setup modifiers
                 ME_STUB.modifiers.altKey   = e.altKey;
                 ME_STUB.modifiers.ctrlKey  = e.ctrlKey;
                 ME_STUB.modifiers.metaKey  = e.metaKey;
                 ME_STUB.modifiers.shiftKey = e.shiftKey;
-                
+
                 if (pkg.$mouseMoveOwner != null) {
                     if (d != pkg.$mouseMoveOwner) {
                         var old = pkg.$mouseMoveOwner;
@@ -11663,7 +11688,7 @@ pkg.zCanvas = Class(pkg.Panel, [
             if (mp != null && mp.canvas != null) {
                 var x = $meX(e, this), y = $meY(e, this), po = mp.component;
 
-                // setup modifiers 
+                // setup modifiers
                 ME_STUB.modifiers.altKey   = e.altKey;
                 ME_STUB.modifiers.ctrlKey  = e.ctrlKey;
                 ME_STUB.modifiers.metaKey  = e.metaKey;
@@ -11773,7 +11798,7 @@ pkg.zCanvas = Class(pkg.Panel, [
             if (d != null && d.isEnabled === true) {
                 mp.component = d;
 
-                // setup modifiers 
+                // setup modifiers
                 ME_STUB.modifiers.altKey   = mp.altKey;
                 ME_STUB.modifiers.ctrlKey  = mp.ctrlKey;
                 ME_STUB.modifiers.metaKey  = mp.metaKey;
@@ -11783,6 +11808,16 @@ pkg.zCanvas = Class(pkg.Panel, [
                 if (ME_STUB.touch != null) {
                     ME_STUB.reset(d, ME.ENTERED, x, y, button, clicks);
                     EM.fireInputEvent(ME_STUB);
+                }
+                else {
+                    // for mouse pointer, check if pressing also should
+                    // update current move owner component and generate
+                    // approriate event
+                    if (pkg.$mouseMoveOwner != d) {
+                        pkg.$mouseMoveOwner = d;
+                        ME_STUB.reset(d, MENTERED, x, y, button, clicks);
+                        EM.fireInputEvent(ME_STUB);
+                    }
                 }
 
                 ME_STUB.reset(d, ME.PRESSED, x, y, button, clicks);
@@ -11802,11 +11837,26 @@ pkg.zCanvas = Class(pkg.Panel, [
             }
         };
 
-        this.getComponentAt = function(x,y){
+        this.getComponentAt = function(x, y){
             for(var i = this.kids.length; --i >= 0; ){
                 var tl = this.kids[i];
                 if (tl.isLayerActiveAt == null || tl.isLayerActiveAt(x, y)) {
-                    return EM.getEventDestination(tl.getComponentAt(x, y));
+
+                    // !!!
+                    //  since the method is widely used the code below duplicates
+                    //  functionality of EM.getEventDestination(tl.getComponentAt(x, y));
+                    //  method
+                    // !!!
+                    var c = tl.getComponentAt(x, y);
+                    if (c != null)  {
+                        var p = c;
+                        while ((p = p.parent) != null) {
+                            if (p.catchInput != null && (p.catchInput === true || (p.catchInput !== false && p.catchInput(c)))) {
+                                c = p;
+                            }
+                        }
+                    }
+                    return c;
                 }
             }
             return null;
@@ -12124,9 +12174,9 @@ pkg.zCanvas = Class(pkg.Panel, [
                 ph  = this.height,
                 ctx = pkg.$canvas.size(this.canvas, w, h);
 
-            //TODO: top works not good in FF and it is better don't use it 
-            // So, ascent has to be taking in account as it was implemented 
-            // before 
+            //TODO: top works not good in FF and it is better don't use it
+            // So, ascent has to be taking in account as it was implemented
+            // before
             this.$context = ctx;
             if (this.$context.textBaseline != "top" ) {
                 this.$context.textBaseline = "top";
@@ -12168,10 +12218,6 @@ pkg.zCanvas = Class(pkg.Panel, [
                     ctx.stack[i] = s;
                 }
                 ctx.reset(w, h);
-
-                ctx.getTopStack = function() {
-                    return this.stack[this.counter];
-                };
 
                 ctx.tX = function(x, y) {
                     var c = this.stack[this.counter], b = (c.sx != 1 || c.sy != 1 || c.rotateVal !== 0);
@@ -12521,7 +12567,7 @@ zebra.ready(
  * @for
  */
 
-})(zebra("ui"), zebra.Class, zebra.Interface);
+})(zebra("ui"), zebra.Class);
 
 (function(pkg, Class) {
 
@@ -12998,7 +13044,7 @@ pkg.TextRender = Class(pkg.Render, zebra.util.Position.Metric, [
         };
 
         this.paint = function(g,x,y,w,h,d) {
-            var ts = g.getTopStack();
+            var ts = g.stack[g.counter];
             if (ts.width > 0 && ts.height > 0) {
                 var lineIndent = this.getLineIndent(),
                     lineHeight = this.getLineHeight(),
@@ -13025,7 +13071,9 @@ pkg.TextRender = Class(pkg.Render, zebra.util.Position.Metric, [
                     y += startLine * lilh;
 
                     g.setFont(this.font);
+
                     if (d == null || d.isEnabled === true){
+
                         g.setColor(this.color);
                         for(var i = 0;i < lines; i++){
                             if (d && d.getStartSelection != null) {
@@ -13061,6 +13109,8 @@ pkg.TextRender = Class(pkg.Render, zebra.util.Position.Metric, [
                     else {
                         var dcol = d != null && d.disabledColor != null ? d.disabledColor
                                                                         : pkg.TextRender.disabledColor;
+
+
                         for(var i = 0;i < lines; i++) {
                             g.setColor(dcol);
                             this.paintLine(g, x, y, i + startLine, d);
@@ -13505,7 +13555,7 @@ pkg.TitledBorder = Class(pkg.Render, [
 
                 var r = d.getTitleInfo();
                 if (r != null) {
-                    var xx = x + w, yy = y + h, t = g.getTopStack();
+                    var xx = x + w, yy = y + h, t = g.stack[g.counter];
                     switch (r.orient) {
                         case L.TOP:
                             var top = this.target.getTop();
@@ -13713,6 +13763,7 @@ pkg.Label = Class(pkg.ViewPan, [
          * @chainable
          */
         this.setValue = function(s){
+            if (s == null) s = "";
             this.view.setValue(s);
             this.repaint();
             return this;
@@ -14197,10 +14248,9 @@ pkg.EvStatePan = Class(pkg.StatePan,  [
  * Composite event state panel
  * @constructor
  * @extends {zebra.ui.EvStatePan}
- * @uses zebra.ui.Composite
  * @class  zebra.ui.CompositeEvStatePan
  */
-pkg.CompositeEvStatePan = Class(pkg.EvStatePan, pkg.Composite, [
+pkg.CompositeEvStatePan = Class(pkg.EvStatePan, [
     function $prototype() {
         /**
          * Indicates if the component can have focus
@@ -14209,6 +14259,9 @@ pkg.CompositeEvStatePan = Class(pkg.EvStatePan, pkg.Composite, [
          * @type {Boolean}
          */
         this.canHaveFocus = true;
+
+
+        this.catchInput = true;
 
 
         this.focusComponent = null;
@@ -14352,6 +14405,9 @@ pkg.Button = Class(pkg.CompositeEvStatePan, [
          */
         this.firePeriod = -1;
 
+
+        this.startIn = 400;
+
         this.fire = function() {
             this._.fired(this);
             if (this.catchFired != null) this.catchFired();
@@ -14381,9 +14437,11 @@ pkg.Button = Class(pkg.CompositeEvStatePan, [
          * repeated
          * @method setFireParams
          */
-        this.setFireParams = function (b,time){
+        this.setFireParams = function (b, firePeriod, startIn){
+            if (this.repeatTask != null) this.repeatTask.shutdown();
             this.isFireByPress = b;
-            this.firePeriod = time;
+            this.firePeriod = firePeriod;
+            if (arguments.length > 2) this.startIn = startIn;
         };
     },
 
@@ -14394,6 +14452,9 @@ pkg.Button = Class(pkg.CompositeEvStatePan, [
     function (t){
         this._ = new Listeners();
         if (zebra.isString(t)) t = new this.$clazz.Label(t);
+        else {
+            if (t instanceof Image) t = new pkg.ImagePan(t);
+        }
         this.$super();
         if (t != null) {
             this.add(t);
@@ -14407,7 +14468,7 @@ pkg.Button = Class(pkg.CompositeEvStatePan, [
             if(this.isFireByPress){
                 this.fire();
                 if (this.firePeriod > 0) {
-                    this.repeatTask = task(this.run, this).run(400, this.firePeriod);
+                    this.repeatTask = task(this.run, this).run(this.startIn, this.firePeriod);
                 }
             }
         }
@@ -15163,9 +15224,9 @@ pkg.SplitPan = Class(pkg.Panel, [
         };
 
         this.calcPreferredSize = function(c){
-            var fSize = pkg.getPreferredSize(this.leftComp),
-                sSize = pkg.getPreferredSize(this.rightComp),
-                bSize = pkg.getPreferredSize(this.gripper);
+            var fSize = pkg.$getPS(this.leftComp),
+                sSize = pkg.$getPS(this.rightComp),
+                bSize = pkg.$getPS(this.gripper);
 
             if (this.orientation == L.HORIZONTAL){
                 bSize.width = Math.max(((fSize.width > sSize.width) ? fSize.width : sSize.width), bSize.width);
@@ -15183,7 +15244,7 @@ pkg.SplitPan = Class(pkg.Panel, [
                 top    = this.getTop(),
                 bottom = this.getBottom(),
                 left   = this.getLeft(),
-                bSize  = pkg.getPreferredSize(this.gripper);
+                bSize  = pkg.$getPS(this.gripper);
 
             if (this.orientation == L.HORIZONTAL){
                 var w = this.width - left - right;
@@ -15791,7 +15852,6 @@ var ScrollManagerListeners = zebra.util.ListenersClass("scrolled");
   * @param  {Integer} px a previous x location target component scroll location
   * @param  {Integer} py a previous y location target component scroll location
   */
-
 pkg.ScrollManager = Class([
     function $prototype() {
         /**
@@ -15799,14 +15859,18 @@ pkg.ScrollManager = Class([
          * @return {Integer} a x scroll location
          * @method getSX
          */
-        this.getSX = function (){ return this.sx; };
+        this.getSX = function() {
+            return this.sx;
+        };
 
         /**
          * Get current target component y scroll location
          * @return {Integer} a y scroll location
          * @method getSY
          */
-        this.getSY = function (){ return this.sy; };
+        this.getSY = function() {
+            return this.sy;
+        };
 
         /**
          * Set a target component scroll x location to the
@@ -15885,10 +15949,9 @@ pkg.ScrollManager = Class([
 
  * @class zebra.ui.Scroll
  * @constructor
- * @uses zebra.ui.Composite
  * @extends {zebra.ui.Panel}
  */
-pkg.Scroll = Class(pkg.Panel, zebra.util.Position.Metric, pkg.Composite, [
+pkg.Scroll = Class(pkg.Panel, zebra.util.Position.Metric, [
     function $clazz() {
         var SB = Class(pkg.Button, [
             function $prototype() {
@@ -16050,9 +16113,9 @@ pkg.Scroll = Class(pkg.Panel, zebra.util.Position.Metric, pkg.Composite, [
         };
 
         this.calcPreferredSize = function (target){
-            var ps1 = pkg.getPreferredSize(this.incBt),
-                ps2 = pkg.getPreferredSize(this.decBt),
-                ps3 = pkg.getPreferredSize(this.bundle);
+            var ps1 = pkg.$getPS(this.incBt),
+                ps2 = pkg.$getPS(this.decBt),
+                ps3 = pkg.$getPS(this.bundle);
 
             if (this.type == L.HORIZONTAL){
                 ps1.width += (ps2.width + ps3.width);
@@ -16073,8 +16136,8 @@ pkg.Scroll = Class(pkg.Panel, zebra.util.Position.Metric, pkg.Composite, [
                 ew     = this.width - left - right,
                 eh     = this.height - top - bottom,
                 b      = (this.type == L.HORIZONTAL),
-                ps1    = pkg.getPreferredSize(this.decBt),
-                ps2    = pkg.getPreferredSize(this.incBt),
+                ps1    = pkg.$getPS(this.decBt),
+                ps2    = pkg.$getPS(this.incBt),
                 minbs  = pkg.Scroll.MIN_BUNDLE_SIZE;
 
             this.decBt.setSize(b ? ps1.width : ew, b ? eh : ps1.height);
@@ -16315,7 +16378,7 @@ pkg.ScrollPan = Class(pkg.Panel, [
         };
 
         this.calcPreferredSize = function (target){
-            return pkg.getPreferredSize(this.scrollObj);
+            return pkg.$getPS(this.scrollObj);
         };
 
         this.doLayout = function (target){
@@ -18648,7 +18711,7 @@ pkg.TextField = Class(pkg.Label, [
                 line        = position.currentLine,
                 foff        = 1;
 
-            if (isShiftDown && e.ch == KE.CHAR_UNDEFINED) {
+            if (isShiftDown && (e.ch == KE.CHAR_UNDEFINED || e.ch == null)) {
                 this.startSelection();
             }
 
@@ -18780,11 +18843,10 @@ pkg.TextField = Class(pkg.Label, [
          * @method drawCursor
          */
         this.drawCursor = function (g){
-            if (
-                this.position.offset >= 0 &&
+            if (this.position.offset >= 0 &&
                 this.curView != null      &&
                 this.blinkMe              &&
-                this.hasFocus()             )
+                (this.hasFocus() || this.$forceToShow == true))
             {
                 this.curView.paint(g, this.curX, this.curY,
                                       this.curW, this.curH, this);
@@ -18977,7 +19039,9 @@ pkg.TextField = Class(pkg.Label, [
          * @method getSelectedText
          */
         this.getSelectedText = function(){
-            return this.startOff != this.endOff ? this.getSubString(this.view, this.getStartSelection(), this.getEndSelection())
+            return this.startOff != this.endOff ? this.getSubString(this.view,
+                                                                    this.getStartSelection(),
+                                                                    this.getEndSelection())
                                                 : null;
         };
 
@@ -18997,8 +19061,8 @@ pkg.TextField = Class(pkg.Label, [
             if (this.isEditable === true && this.blinkingPeriod > 0) {
                 this.blinkMeCounter = 0;
                 this.blinkMe = true;
-                this.blinkTask = zebra.util.task(this).run(Math.floor(this.blinkingPeriod/3),
-                                                           Math.floor(this.blinkingPeriod/3));
+                this.blinkTask = zebra.util.task(this).run(~~(this.blinkingPeriod/3),
+                                                           ~~(this.blinkingPeriod/3));
             }
         };
 
@@ -20309,13 +20373,12 @@ pkg.List = Class(pkg.BaseList, [
  
  * @class zebra.ui.CompList
  * @extends zebra.ui.BaseList
- * @uses zebra.ui.Composite
  * @param {zebra.data.ListModel|Array} [model] a list model that should be passed as an instance
  * of zebra.data.ListModel or as an array.
  * @param {Boolean} [isComboMode] true if the list navigation has to be triggered by 
  * mouse cursor moving 
  */
-pkg.CompList = Class(pkg.BaseList, pkg.Composite, [
+pkg.CompList = Class(pkg.BaseList, [
     function $clazz() {
         this.Label      = Class(pkg.Label, []);
         this.ImageLabel = Class(pkg.ImageLabel, []);
@@ -20515,7 +20578,6 @@ var ContentListeners = zebra.util.ListenersClass("contentUpdated");
 
  * @class zebra.ui.Combo
  * @extends {zebra.ui.Panel}
- * @uses zebra.ui.Composite
  * @constructor
  * @param {Array|zebra.ui.BaseList} data an combo items array or a list component
  */
@@ -20532,7 +20594,7 @@ var ContentListeners = zebra.util.ListenersClass("contentUpdated");
  * has been selected
  * @param {Object} value a previously selected index
  */
-pkg.Combo = Class(pkg.Panel, pkg.Composite, [
+pkg.Combo = Class(pkg.Panel, [
     function $clazz() {
         /**
          * UI panel class that is used to implement combo box content area  
@@ -20549,9 +20611,7 @@ pkg.Combo = Class(pkg.Panel, pkg.Composite, [
                  * @param {zebra.ui.Combo} combo a combo box component that has been updated
                  * @param {Object} value a value with which the combo box has been updated
                  */
-                this.comboValueUpdated = function(combo, value) {
-
-                };
+                this.comboValueUpdated = function(combo, value) {};
                 
                 /**
                  * Indicates if the content panel is editable. Set the property to true 
@@ -21212,6 +21272,22 @@ pkg.showWindow = function(context, type, win, listener) {
     return context.getCanvas().getLayer("win").addWin(type, win, listener);
 };
 
+
+pkg.showPopupMenu = function(context, menu) {
+    context.getCanvas().getLayer("pop").add(menu);
+};
+
+/**
+ * Activate the given window or a window the specified component belongs
+ * @param  {zebra.ui.Panel} win [description]
+ * @api zebra.ui.activateWindow()
+ * @method activateWindow
+ */
+pkg.activateWindow = function(win) {
+    var l = win.getCanvas().getLayer("win");
+    l.activate(L.getDirectChild(l, win));
+};
+
 /**
  * Window layer class. Window layer is supposed to be used for showing
  * modal and none modal internal window. There are special ready to use 
@@ -21287,8 +21363,11 @@ pkg.WinLayer = Class(pkg.BaseLayer, [
                 for(var i = cnt - 1; i >= 0 && i >= this.topModalIndex; i--){
                     var d = this.kids[i];
 
-                    if (d.isVisible === true && d.isEnabled && this.winsTypes[d] != "info" &&
-                        x >= d.x && y >= d.y && x < d.x + d.width && y < d.y + d.height)
+                    if (d.isVisible === true &&
+                        d.isEnabled === true &&
+                        this.winsTypes[d] != "info" &&
+                        x >= d.x && y >= d.y &&
+                        x < d.x + d.width && y < d.y + d.height)
                     {
                         this.activate(d);
                         return true;
@@ -21548,10 +21627,9 @@ pkg.WinLayer = Class(pkg.BaseLayer, [
  * @param {String} [content] a window title
  * @param {zebra.ui.Panel} [content] a window content  
  * @constructor
- * @uses zebra.ui.Composite
  * @extends {zebra.ui.Panel}
  */
-pkg.Window = Class(pkg.StatePan, pkg.Composite, [
+pkg.Window = Class(pkg.StatePan, [
 
     function $prototype() {
         var MOVE_ACTION = 1, SIZE_ACTION = 2;
@@ -21628,7 +21706,7 @@ pkg.Window = Class(pkg.StatePan, pkg.Composite, [
          * @protected 
          * @param  {Integer} px a x coordinate of the mouse cursor 
          * @param  {Integer} py a y coordinate of the mouse cursor 
-         * @return {[type]}  true if the mouse cursor is inside window 
+         * @return {Boolean}  true if the mouse cursor is inside window
          * corner component
          * @method insideCorner
          */
@@ -22245,7 +22323,8 @@ pkg.Menu = Class(pkg.CompList, [
          * @method isDecorative
          */
         this.isDecorative = function(i){
-            return this.decoratives[this.kids[i]] === true || this.kids[i].$isDecorative === true;
+            return this.decoratives[this.kids[i]] === true ||
+                   this.kids[i].$isDecorative === true;
         };
 
         /**
@@ -23281,10 +23360,10 @@ CURSORS[L.LEFT  ] = Cursor.W_RESIZE;
 CURSORS[L.RIGHT ] = Cursor.E_RESIZE;
 CURSORS[L.TOP   ] = Cursor.N_RESIZE;
 CURSORS[L.BOTTOM] = Cursor.S_RESIZE;
-CURSORS[L.TLEFT ] = Cursor.NW_RESIZE;
-CURSORS[L.TRIGHT] = Cursor.NE_RESIZE;
-CURSORS[L.BLEFT ] = Cursor.SW_RESIZE;
-CURSORS[L.BRIGHT] = Cursor.SE_RESIZE;
+CURSORS[L.TopLeft ]    = Cursor.NW_RESIZE;
+CURSORS[L.TopRight]    = Cursor.NE_RESIZE;
+CURSORS[L.BottomLeft ] = Cursor.SW_RESIZE;
+CURSORS[L.BottomRight] = Cursor.SE_RESIZE;
 CURSORS[L.CENTER] = Cursor.MOVE;
 CURSORS[L.NONE  ] = Cursor.DEFAULT;
 
@@ -23319,10 +23398,10 @@ pkg.ShaperBorder = Class(ui.View, [
             var gap = this.gap, gap2 = gap*2, w = target.width, h = target.height;
 
             if (contains(x, y, gap, gap, w - gap2, h - gap2)) return L.CENTER;
-            if (contains(x, y, 0, 0, gap, gap))               return L.TLEFT;
-            if (contains(x, y, 0, h - gap, gap, gap))         return L.BLEFT;
-            if (contains(x, y, w - gap, 0, gap, gap))         return L.TRIGHT;
-            if (contains(x, y, w - gap, h - gap, gap, gap))   return L.BRIGHT;
+            if (contains(x, y, 0, 0, gap, gap))               return L.TopLeft;
+            if (contains(x, y, 0, h - gap, gap, gap))         return L.BottomLeft;
+            if (contains(x, y, w - gap, 0, gap, gap))         return L.TopRight;
+            if (contains(x, y, w - gap, h - gap, gap, gap))   return L.BottomRight;
 
             var mx = ~~((w-gap)/2);
             if (contains(x, y, mx, 0, gap, gap))        return L.TOP;
@@ -23382,12 +23461,11 @@ pkg.InsetsArea = Class([
 
  * @class  zebra.ui.designer.ShaperPan
  * @constructor
- * @uses zebra.ui.Composite
  * @extends {zebra.ui.Panel}
  * @param {zebra.ui.Panel} target a target UI component whose size and location
  * has to be controlled
  */
-pkg.ShaperPan = Class(ui.Panel, ui.Composite, [
+pkg.ShaperPan = Class(ui.Panel, [
     function $prototype() {
        /**
         * Indicates if controlled component can be moved
@@ -23419,6 +23497,8 @@ pkg.ShaperPan = Class(ui.Panel, ui.Composite, [
         this.minHeight = this.minWidth = 12;
         this.canHaveFocus = this.isResizeEnabled = this.isMoveEnabled = true;
         this.state = null;
+
+        this.catchInput = true;
 
         this.getCursorType = function (t, x ,y) {
             return this.kids.length > 0 ? CURSORS[this.shaperBr.detectAt(t, x, y)] : null;
@@ -25997,7 +26077,7 @@ var Matrix = zebra.data.Matrix, L = zebra.layout, MB = zebra.util,
     Listeners = zebra.util.Listeners;
 
 //!!! crappy function
-//TODO: think how to remove
+//TODO: think how to remove/replace it
 function arr(l, v) {
     var a = Array(l);
     for(var i=0; i<l; i++) a[i] = v;
@@ -26869,9 +26949,8 @@ pkg.GridCaption = Class(pkg.BaseCaption, [
  * @constructor
  * @class zebra.ui.grid.CompGridCaption
  * @extends zebra.ui.grid.BaseCaption
- * @uses zebra.ui.Composite
  */
-pkg.CompGridCaption = Class(pkg.BaseCaption, ui.Composite, [
+pkg.CompGridCaption = Class(pkg.BaseCaption, [
     function $clazz() {
         this.Layout = Class(L.Layout, [
             function $prototype() {
@@ -28032,8 +28111,12 @@ pkg.Grid = Class(ui.Panel, Position.Metric, pkg.Metrics, [
                 var y    = this.visibility.fr[1] + this.cellInsetsTop, 
                     addW = this.cellInsetsLeft + this.cellInsetsRight,
                     addH = this.cellInsetsTop + this.cellInsetsBottom, 
-                    ts   = g.getTopStack(), cx = ts.x, cy = ts.y,
-                    cw = ts.width, ch = ts.height, res = {};
+                    ts   = g.stack[g.counter],
+                    cx   = ts.x,
+                    cy   = ts.y,
+                    cw   = ts.width,
+                    ch   = ts.height,
+                    res  = {};
 
                 //!!!!
                 //var desk = this.getCanvas();
@@ -28204,7 +28287,7 @@ pkg.Grid = Class(ui.Panel, Position.Metric, pkg.Metrics, [
             };
 
             this.getPSSize = function (rowcol,b){
-                if (this.isUsePsMetric) {
+                if (this.isUsePsMetric === true) {
                     return b ? this.getRowHeight(rowcol) : this.getColWidth(rowcol);
                 }
                 else {

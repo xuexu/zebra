@@ -1,11 +1,3 @@
-**8.2014 (Luda)**
-
-  * Remove zebra.ui.CopyCutPaste interface
-  * Reorganize tree component
-  * Add Component Tree component 
-  * Fixes and improvements
-  * OOP Singleton classes support
-  * Composite interface has been removed, use catchInput property or method to build a composite component  
 
 **4.2014 (Luda)**
 
