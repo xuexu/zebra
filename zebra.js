@@ -157,7 +157,7 @@ var $$$ = 0, namespaces = {}, namespace = function(nsname, dontCreate) {
             }
             else {
                 if ((p instanceof Package) === false) {
-                    throw new Error("Package '" + name +  "' conflicts with variable '" + n + "'");
+                    throw new Error("Requested package '" + name +  "' conflicts with variable '" + n + "'");
                 }
             }
 
@@ -207,7 +207,7 @@ pkg.$global    = (typeof window !== "undefined" && window != null) ? window : th
 pkg.isString   = isString;
 pkg.isNumber   = isNumber;
 pkg.isBoolean  = isBoolean;
-pkg.version    = "4.2014";
+pkg.version    = "10.2014";
 pkg.$caller    = null; // current method which is called
 
 function mnf(name, params) {
@@ -527,7 +527,11 @@ pkg.Class = make_template(null, function() {
 
     var df = arguments[arguments.length - 1],
         $parent = null,
-        args = Array.prototype.slice.call(arguments, 0, arguments.length-1);
+        args = [] // using slice can be slower that trivial copying array
+                  // Array.prototype.slice.call(arguments, 0, arguments.length-1);
+
+    // use instead of slice for performance reason
+    for(var i=0; i < arguments.length-1; i++) args[i] = arguments[i];
 
     if (args.length > 0 && (args[0] == null || args[0].$clazz == pkg.Class)) {
         $parent = args[0];
@@ -568,7 +572,11 @@ pkg.Class = make_template(null, function() {
                 var o = new f();
 
                 // call constructor 
-                cl.apply(o, Array.prototype.slice.call(arguments, 0, k + 1));
+                // use array copy instead of cloning with slice for performance reason
+                // (Array.prototype.slice.call(arguments, 0, k + 1))
+                var args = [];
+                for(var i=0; i < k + 1; i++) args[i] = arguments[i];
+                cl.apply(o, args);
                 
                 // set constructor field for consistency 
                 o.constructor = cl;
@@ -651,7 +659,9 @@ pkg.Class = make_template(null, function() {
             var name = pkg.$caller.methodName, $s = pkg.$caller.boundTo.$parent, args = arguments;
             if (arguments.length > 0 && typeof arguments[0] === 'function') {
                 name = arguments[0].methodName;
-                args = Array.prototype.slice.call(arguments, 1);
+                args = [];
+                // slice is slower Array.prototype.slice.call(arguments, 1);
+                for(var i=1; i < arguments.length; i++) args[i-1] = arguments[i];
             }
 
             var params = args.length;
@@ -811,7 +821,7 @@ pkg.Class = make_template(null, function() {
      * extended with
      * @method extend
      */
-    extend = function(df) {
+    var extend = function(df) {
         if (Array.isArray(df) === false) {
             throw new Error("Invalid class definition '" + df + "', array is expected");
         }
@@ -862,7 +872,19 @@ pkg.Class = make_template(null, function() {
     if ($parent != null) {
         for (var k in $parent) {
             if (k[0] != '$' && $parent.hasOwnProperty(k) && $template.hasOwnProperty(k) === false) {
-                $template[k] = $parent[k];
+                var val = $parent[k];
+
+                // clone direct JS Object
+                if (val != null && val.constructor === Object) {
+                    var nval = {};
+                    for (var vk in val) {
+                        if (val.hasOwnProperty(vk)) nval[vk] = val[vk];
+                    }
+                    $template[k] = nval;
+                }
+                else {
+                    $template[k] = $parent[k];
+                }
             }
         }
     }
@@ -1544,7 +1566,7 @@ var $NewListener = function() {
         clazz.prototype.add = function() {
             if (this.v == null) this.v = [];
             
-            var ctx = this;
+            var ctx = this,
                 l   = arguments[arguments.length - 1]; // last arguments are handler(s)
             
 
@@ -2502,6 +2524,7 @@ pkg.Bag = zebra.Class([
                         return m.apply(this.objects, this.mergeObjWithDesc(null, vv));
                     }
 
+                    // try to find if the destination object already has the property k
                     var po = o && o.hasOwnProperty(k) ? o[k] : null;
 
                    // v[k] = d[k];
@@ -7840,7 +7863,7 @@ pkg.Pattern = Class(pkg.Render, [
             g.fill();
         };
 
-        targetWasChanged = function(o, n) {
+        this.targetWasChanged = function(o, n) {
             this.pattern = null;
         };
     }
@@ -8127,7 +8150,7 @@ rgb.prototype.paint = function(g,x,y,w,h,d) {
             rw = Math.min(x + w, t.x + t.width) - rx;
 
         if (rw > 0)  {
-            var ry = y > t.y ? y : t.y;
+            var ry = y > t.y ? y : t.y,
                 rh = Math.min(y + h, t.y + t.height) - ry;
 
             if (rh > 0) g.fillRect(rx, ry, rw, rh);
@@ -8361,7 +8384,7 @@ pkg.Cursor = {
  * @class  zebra.ui.InputEvent
  * @constructor
  */
-IE = pkg.InputEvent = Class([
+var IE = pkg.InputEvent = Class([
     function $clazz() {
         this.MOUSE_UID    = 1;
         this.KEY_UID      = 2;
@@ -17104,12 +17127,16 @@ pkg.Tabs = Class(pkg.Panel, [
             if (b) {
                 this.repaintX = this.tabAreaX = left ;
                 this.repaintY = this.tabAreaY = (this.orient == L.TOP) ? top : this.height - bottom - this.tabAreaHeight;
-                if (this.orient == L.BOTTOM) this.repaintY -= this.border.getBottom();
+                if (this.orient == L.BOTTOM) {
+                    this.repaintY -= (this.border != null ? this.border.getBottom() : 0);
+                }
             }
             else {
                 this.repaintX = this.tabAreaX = (this.orient == L.LEFT ? left : this.width - right - this.tabAreaWidth);
                 this.repaintY = this.tabAreaY = top ;
-                if (this.orient == L.RIGHT) this.repaintX -= this.border.getRight();
+                if (this.orient == L.RIGHT) {
+                    this.repaintX -= (this.border != null ? this.border.getRight() : 0);
+                }
             }
 
             var count = this.kids.length,
@@ -17127,14 +17154,14 @@ pkg.Tabs = Class(pkg.Panel, [
                     xx += r.width;
                     if (i == this.selectedIndex) {
                         xx -= sp;
-                        if (this.orient == L.BOTTOM) r.y -= this.border.getBottom();
+                        if (this.orient == L.BOTTOM) r.y -= (this.border != null ? this.border.getBottom() : 0);
                     }
                 }
                 else {
                     yy += r.height;
                     if (i == this.selectedIndex) {
                         yy -= sp;
-                        if (this.orient == L.RIGHT) r.x -= this.border.getRight();
+                        if (this.orient == L.RIGHT) r.x -= (this.border != null ? this.border.getRight() : 0);
                     }
                 }
             }
@@ -17227,13 +17254,17 @@ pkg.Tabs = Class(pkg.Panel, [
                     this.tabAreaWidth   = max + this.sideSpace;
                     this.tabAreaHeight += (2 * this.sideSpace);
                     this.repaintHeight  = this.tabAreaHeight;
-                    this.repaintWidth   = this.tabAreaWidth + (b  == L.LEFT ? this.border.getLeft() : this.border.getRight());
+                    this.repaintWidth   = this.tabAreaWidth + (this.border != null ? (b == L.LEFT ? this.border.getLeft()
+                                                                                                  : this.border.getRight())
+                                                                                   : 0);
                 }
                 else {
                     this.tabAreaWidth += (2 * this.sideSpace);
                     this.tabAreaHeight = this.sideSpace + max;
                     this.repaintWidth  = this.tabAreaWidth;
-                    this.repaintHeight = this.tabAreaHeight + (b  == L.TOP ? this.border.getTop() : this.border.getBottom());
+                    this.repaintHeight = this.tabAreaHeight + (this.border != null ? (b  == L.TOP ? this.border.getTop()
+                                                                                                  : this.border.getBottom())
+                                                                                   : 0);
                 }
 
                 // make selected tab page title bigger
@@ -17241,10 +17272,14 @@ pkg.Tabs = Class(pkg.Panel, [
                     var r = this.getTabBounds(this.selectedIndex);
                     if (b) {
                         r.height += 2 * this.sideSpace;
-                        r.width += this.sideSpace  + (b == L.LEFT ? this.border.getLeft() : this.border.getRight());
+                        r.width += this.sideSpace +  (this.border != null ? (b == L.LEFT ? this.border.getLeft()
+                                                                                         : this.border.getRight())
+                                                                          : 0);
                     }
                     else {
-                        r.height += this.sideSpace + (b == L.TOP ? this.border.getTop() : this.border.getBottom());
+                        r.height += this.sideSpace + (this.border != null ? (b == L.TOP ? this.border.getTop()
+                                                                                        : this.border.getBottom())
+                                                                          : 0);
                         r.width  += 2 * this.sideSpace;
                     }
                 }
@@ -19251,14 +19286,13 @@ pkg.TextField = Class(pkg.Label, [
         //!!! to maximize optimize performance the method duplicates part of ViewPan.paint() code
         this.paint = function(g){
             var sx = this.scrollManager.getSX(), 
-                sy = this.scrollManager.getSY();
+                sy = this.scrollManager.getSY(),
+                l  = this.getLeft(),
+                t  = this.getTop();
             
             try{
                 g.translate(sx, sy);
-
                 //!!! this code can be found in ViewPan.paint()
-                var l = this.getLeft(), 
-                    t = this.getTop();
 
                 this.view.paint(g, l, t, this.width  - l - this.getRight(),
                                          this.height - t - this.getBottom(), this);
