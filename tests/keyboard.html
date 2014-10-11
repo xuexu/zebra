@@ -8,6 +8,7 @@
 <meta name="msapplication-tap-highlight" content="no" />
 
 
+
 <script src='../lib/zebra/easyoop.js'    type='text/javascript'></script>
 <script src='../lib/zebra/util.js' type='text/javascript'></script>
 <script src='../lib/zebra/io.js'    type='text/javascript'></script>
@@ -38,60 +39,7 @@ zebra.ready(function() {
 
     //TODO: remove test code
     zebra.ui.vk.activateVK();
-
-
     var vk = zebra.ui.vk.getVK();
-
-
-    zebra.ui.vk.VKey.background = {
-        out  :"black",
-        over :"gray",
-        "pressed.over" : "orange"
-    }
-
-    zebra.ui.vk.VKey.border = {
-        out : new zebra.ui.Border("white", 1, 6),
-        "pressed.over" : new zebra.ui.Border("orange", 1, 6),
-    }
-
-    zebra.ui.vk.VKeys.background = {
-        out :"gray",
-        over :"gray",
-        "pressed.over" : "orange"
-    }
-
-    zebra.ui.vk.VKeys.SmallLabel.color = "orange";
-
-
-    zebra.ui.vk.VKey.Label.color = "white"
-
-    zebra.ui.vk.VKeyOption.background = {
-        out :"#dF4422",
-        over :"gray",
-        "pressed.over" : "orange"
-    };
-
-
-    vk.addGroup("latin", [
-        [ "1!", "2@", "3#", "4$", "5%", "6^", "7&", "8*", "9(", "0)" ],
-        [ "q", "w", "e", "r", "t",  "y", "u", "i", "o", "p" ],
-        [ "a", "s", "d", "f", "g", "h", "j", "k", "l"  ],
-        [ "shift", "z", "x", "c", "v", "b", "n", "m", "backSpace" ],
-        [ { vkey: new zebra.ui.vk.VKeyOption("Lang", [ "rus" ]), size: "ps" }, "/-+=", "space",  ".,:;", "enter"]
-    ]);
-
-
-    vk.addGroup("rus", [
-        [ "1", "2", "3", "4", "5", "6", "7", "8", "9", "0" ],
-        [ "й", "ц", "у", "к", "е", "н", "г", "ш", "щ", "з" ],
-        [ "ф", "ы", "в", "а", "п", "р", "о", "л", "джэ"  ],
-        [ "я", "ч", "с", "м", "и", "т", "ь", "б", "ю",  ],
-        [ { vkey: new zebra.ui.vk.VKeyOption("Lang", [ "latin" ]), size: "ps" } ,  "shift", "space", "enter" ]
-    ]);
-
-
-    vk.showGroup("latin");
-
 
     vk.bind(function vkMaskUpdated(vkey, om, nm) {
         if ((nm & zebra.ui.KeyEvent.M_SHIFT) > 0) {
@@ -107,22 +55,10 @@ zebra.ready(function() {
     });
 
     vk.bind(function vkOptionSelected(vkey, i, o) {
-        console.log("showGroup :" + o);
-        vk.showGroup(o);
+        vk.setActiveGroup(o);
     });
 
-
     canvas.root.add("top", new zebra.ui.TextField());
-
-
-    var window = new zebra.ui.Window();
-    window.root.setLayout(new zebra.layout.BorderLayout());
-    window.root.add("center", new zebra.ui.TextField());
-    window.setBounds(40,40, 200, 200);
-
-   // canvas.getLayer("win").addWin("modal", window);
-
-
     canvas.fullScreen();
 });
 
