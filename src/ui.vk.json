@@ -84,7 +84,7 @@
                [ "down"]
             ],
 
-            "hindi": "@(vk.hindi.json)"
+            "hindi": "///@(ui.vk.hindi.json)"
         },
         "activeGroup" : "latin",
         "background"  : "lightGray",

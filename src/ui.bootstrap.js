@@ -7,7 +7,7 @@ zebkit.package("ui", function(pkg, Class) {
 
     if (path != null) {
         zebkit.busy();
-        pkg.load(path,function(e) {
+        pkg.load(path, function(e) {
             if (e != null) {
                 console.log("Config JSON loading failed:" + (e.stack != null ? e.stack : e));
             }
@@ -19,5 +19,7 @@ zebkit.package("ui", function(pkg, Class) {
     // IE9 has an error: first mouse press formally pass focus to
     // canvas, but actually it doesn't get key events. To fix it
     // it is necessary to pass focus explicitly to window
-    if (zebkit.isIE) window.focus();
+    if (zebkit.isIE) {
+        window.focus();
+    }
 });

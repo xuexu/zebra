@@ -2482,11 +2482,11 @@ pkg.ViewPan = Class(pkg.Panel, [
          * @method setView
          * @chainable
          */
-        this.setView = function (v){
+        this.setView = function(v){
             var old = this.view;
             v = pkg.$view(v);
 
-            if (v != old) {
+            if (v !== old) {
                 this.view = v;
                 this.notifyRender(old, v);
                 this.vrp();
@@ -2933,8 +2933,11 @@ pkg.ShortcutManager = Class(pkg.Manager, [
                     c = c[e.mask];
                     pkg.events._.commandFired(c);
                     if (fo[c.command]) {
-                         if (c.args && c.args.length > 0) fo[c.command].apply(fo, c.args);
-                         else fo[c.command]();
+                        if (c.args && c.args.length > 0) {
+                            fo[c.command].apply(fo, c.args);
+                        } else {
+                            fo[c.command]();
+                        }
                     }
                 }
             }
@@ -3479,7 +3482,7 @@ pkg.zCanvas = Class(pkg.HtmlCanvas, [
 
                 pkg.$pointerPressedOwner[e.identifier] = d;
 
-                // TODO: prove the solution !?
+                // TODO: prove the solution (returning true) !?
                 if (pkg.events.fireEvent("pointerPressed", e.update(d, x, y)) === true) {
                     delete pkg.$pointerPressedOwner[e.identifier];
                     return true;

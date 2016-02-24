@@ -302,7 +302,7 @@ pkg.WinLayer = Class(pkg.CanvasLayer, [
                 l = this.winsListeners[e.source];
             }
 
-            pkg.events.fireEvent(id, e)
+            pkg.events.fireEvent(id, e);
             if (l != null && l[id] != null) {
                 l[id].call(l, e);
             }
@@ -1709,6 +1709,10 @@ pkg.PopupLayer = Class(pkg.CanvasLayer, [
             var b = false;
             if (this.activeMenubar != null) {
                 this.activeMenubar.select(-1);
+            }
+
+            if (this.kids.length > 0) {
+                this.removeAll();
             }
 
             return b;

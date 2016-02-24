@@ -181,8 +181,7 @@ pkg.Text = Class(pkg.TextModel, [
 
             if (arguments.length === 1) {
                 size = 1;
-            }
-            else {
+            } else {
                 if (size <= 0) {
                     throw new Error("Invalid number of lines : " + size);
                 }
@@ -239,8 +238,7 @@ pkg.Text = Class(pkg.TextModel, [
                 if (j >= slen) {
                     this.lines[info[0]].s = tmp;
                     j = 1;
-                }
-                else {
+                } else {
                     this.lines.splice(info[0], 1);
                     j = this.parse(info[0], tmp, this.lines);
                 }
@@ -458,8 +456,6 @@ pkg.SingleLineTxt = Class(pkg.TextModel, [
          *  @param {String} text a text
          *  @return {Boolean} return true if the text is valid otherwise return false
          */
-
-
         this[''] = function (s, max) {
             this.maxLen = max == null ? -1 : max;
             this.buf = "";
@@ -1231,8 +1227,7 @@ pkg.Matrix = Class([
                 this.objs = arguments[0];
                 this.cols = (this.objs.length > 0) ? this.objs[0].length : 0;
                 this.rows = this.objs.length;
-            }
-            else {
+            } else {
                 this.objs = [];
                 this.rows = this.cols = 0;
                 if (arguments.length > 1) {

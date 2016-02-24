@@ -92,8 +92,12 @@ zebkit.package("ui.demo", function(pkg, Class) {
             p3.setPreferredSize(270, 190);
             p3.setBorder(zebkit.ui.borders.plain);
 
-            var p4_1 = new TextField(new zebkit.data.Text(zebkit.io.GET("demo/test.txt")));
+            var p4_1 = new TextField(new zebkit.data.Text());
             p4_1.setBorder(null);
+
+            zebkit.io.GET("demo/test.txt", function(r) {
+                p4_1.setValue(r.responseText);
+            });
 
             var p4 = new ScrollPan(p4_1);
             p4.setPreferredSize(270, 190);

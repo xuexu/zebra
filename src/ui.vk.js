@@ -1094,7 +1094,7 @@ zebkit.package("ui.vk", function(pkg, Class) {
         }
     });
 
-    new ui.Bag(pkg).load(pkg.$url + "vk.json", function(e) {
+    new ui.Bag(pkg).load(pkg.$url + "ui.vk.json", function(e) {
         if (e != null) {
             console.log("VK JSON loading failed: " + (e.stack ? e.stack : e));
         }

@@ -6252,8 +6252,7 @@ pkg.Text = Class(pkg.TextModel, [
 
             if (arguments.length === 1) {
                 size = 1;
-            }
-            else {
+            } else {
                 if (size <= 0) {
                     throw new Error("Invalid number of lines : " + size);
                 }
@@ -6310,8 +6309,7 @@ pkg.Text = Class(pkg.TextModel, [
                 if (j >= slen) {
                     this.lines[info[0]].s = tmp;
                     j = 1;
-                }
-                else {
+                } else {
                     this.lines.splice(info[0], 1);
                     j = this.parse(info[0], tmp, this.lines);
                 }
@@ -6529,8 +6527,6 @@ pkg.SingleLineTxt = Class(pkg.TextModel, [
          *  @param {String} text a text
          *  @return {Boolean} return true if the text is valid otherwise return false
          */
-
-
         this[''] = function (s, max) {
             this.maxLen = max == null ? -1 : max;
             this.buf = "";
@@ -7302,8 +7298,7 @@ pkg.Matrix = Class([
                 this.objs = arguments[0];
                 this.cols = (this.objs.length > 0) ? this.objs[0].length : 0;
                 this.rows = this.objs.length;
-            }
-            else {
+            } else {
                 this.objs = [];
                 this.rows = this.cols = 0;
                 if (arguments.length > 1) {
@@ -8439,7 +8434,9 @@ pkg.PointerEventUnifier = Class([
                         mp.$adapter.$UP(id, e, stub);
                     }
                 } else {
-                    if (isPressedInQ) {
+                    if (isPressedInQ) {  // the mouse pressed and mouse released has happened in different
+                                         // point in a time to let UI show visiual state, for instance mouse
+                                         // down and up
                         var $this = this;
                         setTimeout(function() {
                             $this.$fireUP(id, e, mp, stub, $this.destination);
@@ -8541,8 +8538,7 @@ pkg.PointerEventUnifier = Class([
                         $this.$firePressedFromQ(); // flush queue
                     }, 25);
                 }
-            }
-            catch(ee) {
+            } catch(ee) {
                 // restore touch counter if an error has happened
                 if (stub.touchCounter > 0) stub.touchCounter--;
                 throw ee;
@@ -8567,8 +8563,7 @@ pkg.PointerEventUnifier = Class([
                     if ($pointerPressedEvents[RMOUSE] != null) {
                         this.$DRAG(RMOUSE, e, ME_STUB);
                     }
-                }
-                else {
+                } else {
                     // initialize native fields
                     ME_STUB.$fillWith("mouse", e);
                     this.destination.$pointerMoved(ME_STUB);
@@ -8591,8 +8586,7 @@ pkg.PointerEventUnifier = Class([
                  $this.$touchedAt(e.pageX, e.pageY, 0))
             {
                 e.preventDefault();
-            }
-            else {
+            } else {
                 $this.$DOWN(e.button === 0 ? LMOUSE : RMOUSE, e, ME_STUB);
                 e.stopPropagation();
             }
@@ -8624,8 +8618,7 @@ pkg.PointerEventUnifier = Class([
             // and right buttons
             if (e.button !== 0 && e.button !== 2) {
                 e.preventDefault();
-            }
-            else {
+            } else {
                 var id = e.button === 0 ? LMOUSE : RMOUSE;
 
                 $this.$UP(id, e, ME_STUB);
@@ -14261,11 +14254,11 @@ pkg.ViewPan = Class(pkg.Panel, [
          * @method setView
          * @chainable
          */
-        this.setView = function (v){
+        this.setView = function(v){
             var old = this.view;
             v = pkg.$view(v);
 
-            if (v != old) {
+            if (v !== old) {
                 this.view = v;
                 this.notifyRender(old, v);
                 this.vrp();
@@ -15258,7 +15251,7 @@ pkg.zCanvas = Class(pkg.HtmlCanvas, [
 
                 pkg.$pointerPressedOwner[e.identifier] = d;
 
-                // TODO: prove the solution !?
+                // TODO: prove the solution (returning true) !?
                 if (pkg.events.fireEvent("pointerPressed", e.update(d, x, y)) === true) {
                     delete pkg.$pointerPressedOwner[e.identifier];
                     return true;
@@ -24205,7 +24198,7 @@ pkg.WinLayer = Class(pkg.CanvasLayer, [
                 l = this.winsListeners[e.source];
             }
 
-            pkg.events.fireEvent(id, e)
+            pkg.events.fireEvent(id, e);
             if (l != null && l[id] != null) {
                 l[id].call(l, e);
             }
@@ -25612,6 +25605,10 @@ pkg.PopupLayer = Class(pkg.CanvasLayer, [
             var b = false;
             if (this.activeMenubar != null) {
                 this.activeMenubar.select(-1);
+            }
+
+            if (this.kids.length > 0) {
+                this.removeAll();
             }
 
             return b;
@@ -31549,7 +31546,7 @@ zebkit.package("ui", function(pkg, Class) {
 
     if (path != null) {
         zebkit.busy();
-        pkg.load(path,function(e) {
+        pkg.load(path, function(e) {
             if (e != null) {
                 console.log("Config JSON loading failed:" + (e.stack != null ? e.stack : e));
             }
@@ -31561,5 +31558,7 @@ zebkit.package("ui", function(pkg, Class) {
     // IE9 has an error: first mouse press formally pass focus to
     // canvas, but actually it doesn't get key events. To fix it
     // it is necessary to pass focus explicitly to window
-    if (zebkit.isIE) window.focus();
+    if (zebkit.isIE) {
+        window.focus();
+    }
 });

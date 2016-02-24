@@ -34,5 +34,11 @@ zebkit.package("ui.demo", function(pkg, Class) {
         function activated(b) {}
     ]);
 
-    new zebkit.ui.Bag(zebkit.ui).load(pkg.$url.join("demo.json"));
+    zebkit.busy();
+    new zebkit.ui.Bag(zebkit.ui).load(pkg.$url.join("demo.json"), function(e) {
+        if (e != null) {
+            console.log("Config JSON loading failed:" + (e.stack != null ? e.stack : e));
+        }
+        zebkit.ready();
+    });
 });

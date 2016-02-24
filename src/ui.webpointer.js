@@ -471,7 +471,9 @@ pkg.PointerEventUnifier = Class([
                         mp.$adapter.$UP(id, e, stub);
                     }
                 } else {
-                    if (isPressedInQ) {
+                    if (isPressedInQ) {  // the mouse pressed and mouse released has happened in different
+                                         // point in a time to let UI show visiual state, for instance mouse
+                                         // down and up
                         var $this = this;
                         setTimeout(function() {
                             $this.$fireUP(id, e, mp, stub, $this.destination);
@@ -573,8 +575,7 @@ pkg.PointerEventUnifier = Class([
                         $this.$firePressedFromQ(); // flush queue
                     }, 25);
                 }
-            }
-            catch(ee) {
+            } catch(ee) {
                 // restore touch counter if an error has happened
                 if (stub.touchCounter > 0) stub.touchCounter--;
                 throw ee;
@@ -599,8 +600,7 @@ pkg.PointerEventUnifier = Class([
                     if ($pointerPressedEvents[RMOUSE] != null) {
                         this.$DRAG(RMOUSE, e, ME_STUB);
                     }
-                }
-                else {
+                } else {
                     // initialize native fields
                     ME_STUB.$fillWith("mouse", e);
                     this.destination.$pointerMoved(ME_STUB);
@@ -623,8 +623,7 @@ pkg.PointerEventUnifier = Class([
                  $this.$touchedAt(e.pageX, e.pageY, 0))
             {
                 e.preventDefault();
-            }
-            else {
+            } else {
                 $this.$DOWN(e.button === 0 ? LMOUSE : RMOUSE, e, ME_STUB);
                 e.stopPropagation();
             }
@@ -656,8 +655,7 @@ pkg.PointerEventUnifier = Class([
             // and right buttons
             if (e.button !== 0 && e.button !== 2) {
                 e.preventDefault();
-            }
-            else {
+            } else {
                 var id = e.button === 0 ? LMOUSE : RMOUSE;
 
                 $this.$UP(id, e, ME_STUB);

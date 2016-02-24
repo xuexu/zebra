@@ -161,14 +161,16 @@
 		    											}),
 		    											center : new Panel({
 		    												layout: new FlowLayout("center", "top", "horizontal", 12),
-		    												kids  : [ new TextField(new zebkit.data.Text(zebkit.io.GET("demo/desc.txt"))).properties({
-		    													color:"white",
-		    													background: null,
-		    													border: null,
-		    													padding: 0,
-		    													editable: false,
-		    													cursorView: "black",
-		    													font : new Font("Verdana", 14)
+		    												kids  : [
+		    													new TextField("").properties({
+			    													color     : "white",
+			    													background: null,
+			    													border: null,
+			    													id    : "descField",
+			    													padding: 0,
+			    													editable: false,
+			    													cursorView: "black",
+			    													font : new Font("Verdana", 14)
 		    												}) ]
 		    											}),
 		    											bottom: new Panel({
@@ -219,10 +221,11 @@
 					prevSelected = data;
 				});
 
-				// desktop.scale(1.3, 1.3);
-				// desktop.rotate(0.3);
-
-				root.repaint();
+				zebkit.io.GET("demo/desc.txt", function(r) {
+					root.find("#descField").setModel(new zebkit.data.Text(r.responseText));
+					root.find("#descField").setColor("white");
+					root.find("#descField").setFont(new Font("Verdana", 14));
+				});
 			},
 
 			function() {
