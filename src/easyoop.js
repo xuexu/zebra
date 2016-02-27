@@ -913,31 +913,37 @@ pkg.Class = make_template(null, function() {
 
     classTemplate.prototype.$super = function() {
        if (pkg.$caller !== null) {
-            var name = pkg.$caller.methodName,
-                $s   = pkg.$caller.boundTo.$parent,
-                args = arguments;
-
-            // fetch function name if it is passed as the first argument
-            if (arguments.length > 0 && typeof arguments[0] === 'function') {
-                name = arguments[0].methodName;
-                args = [];
-                for(var i = 1; i < arguments.length; i++) {
-                    args[i-1] = arguments[i];
-                }
-            }
+            var $s = pkg.$caller.boundTo.$parent;
 
             while ($s !== null) {
-                var m = $s.prototype[name];
+                var m = $s.prototype[pkg.$caller.methodName];
                 if (m != null) {
-                    return m.apply(this, args);
+                    return m.apply(this, arguments);
                 }
                 $s = $s.$parent;
             }
 
             // handle method not found error
             var cln = this.clazz && this.clazz.$name ? this.clazz.$name + "." : "";
-            throw new ReferenceError("Method '" + cln + (name === CNAME ? "constructor"
-                                                                        : name) + "(" + args.length + ")" + "' not found");
+            throw new ReferenceError("Method '" +
+                                     cln +
+                                     (pkg.$caller.methodName === CNAME ? "constructor"
+                                                                       : pkg.$caller.methodName) + "(" + arguments.length + ")" + "' not found");
+        }
+        throw new Error("$super is called outside of class context");
+    };
+
+    classTemplate.prototype.$getSuper = function(name) {
+       if (pkg.$caller !== null) {
+            var $s = pkg.$caller.boundTo.$parent;
+            while ($s !== null) {
+                var m = $s.prototype[name];
+                if (m != null) {
+                    return m;
+                }
+                $s = $s.$parent;
+            }
+            return null;
         }
         throw new Error("$super is called outside of class context");
     };

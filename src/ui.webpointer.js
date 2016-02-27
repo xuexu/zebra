@@ -109,12 +109,20 @@ pkg.PointerEvent = Class(zebkit.util.Event, [
             this.pressure   = typeof e.pressure !== 'undefined' ? e.pressure : 0.5;
         };
 
-        // TODO: not implemented method
         this.getTouches = function() {
-            var touches = [];
+            var touches = [], i = 0;
             for(var k in pkg.$pointerPressedEvents) {
-
+                var pe = pkg.$pointerPressedEvents[k];
+                touches[i++] = {
+                    pageX      : pe.pageX,
+                    pageY      : pe.pageY,
+                    identifier : pe.identifier,
+                    target     : pe.target,
+                    pressure   : pe.pressure,
+                    pointerType: pe.stub.pointerType
+                }
             }
+            return touches;
         };
     }
 ]);
@@ -214,7 +222,10 @@ pkg.MouseWheelSupport = Class([
 // global mouse move events handler (registered by drag out a canvas surface)
 // has to be removed every time a mouse button released with the given function
 function $cleanDragFix() {
-    if ($tmpWinMouseMoveListener != null && $pointerPressedEvents[LMOUSE] == null && $pointerPressedEvents[RMOUSE] == null) {
+    if ($tmpWinMouseMoveListener != null      &&
+        $pointerPressedEvents[LMOUSE] == null &&
+        $pointerPressedEvents[RMOUSE] == null   )
+    {
         window.removeEventListener("mousemove", $tmpWinMouseMoveListener, true);
         $tmpWinMouseMoveListener = null;
         return true;

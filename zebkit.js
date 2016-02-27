@@ -913,31 +913,37 @@ pkg.Class = make_template(null, function() {
 
     classTemplate.prototype.$super = function() {
        if (pkg.$caller !== null) {
-            var name = pkg.$caller.methodName,
-                $s   = pkg.$caller.boundTo.$parent,
-                args = arguments;
-
-            // fetch function name if it is passed as the first argument
-            if (arguments.length > 0 && typeof arguments[0] === 'function') {
-                name = arguments[0].methodName;
-                args = [];
-                for(var i = 1; i < arguments.length; i++) {
-                    args[i-1] = arguments[i];
-                }
-            }
+            var $s = pkg.$caller.boundTo.$parent;
 
             while ($s !== null) {
-                var m = $s.prototype[name];
+                var m = $s.prototype[pkg.$caller.methodName];
                 if (m != null) {
-                    return m.apply(this, args);
+                    return m.apply(this, arguments);
                 }
                 $s = $s.$parent;
             }
 
             // handle method not found error
             var cln = this.clazz && this.clazz.$name ? this.clazz.$name + "." : "";
-            throw new ReferenceError("Method '" + cln + (name === CNAME ? "constructor"
-                                                                        : name) + "(" + args.length + ")" + "' not found");
+            throw new ReferenceError("Method '" +
+                                     cln +
+                                     (pkg.$caller.methodName === CNAME ? "constructor"
+                                                                       : pkg.$caller.methodName) + "(" + arguments.length + ")" + "' not found");
+        }
+        throw new Error("$super is called outside of class context");
+    };
+
+    classTemplate.prototype.$getSuper = function(name) {
+       if (pkg.$caller !== null) {
+            var $s = pkg.$caller.boundTo.$parent;
+            while ($s !== null) {
+                var m = $s.prototype[name];
+                if (m != null) {
+                    return m;
+                }
+                $s = $s.$parent;
+            }
+            return null;
         }
         throw new Error("$super is called outside of class context");
     };
@@ -8072,12 +8078,20 @@ pkg.PointerEvent = Class(zebkit.util.Event, [
             this.pressure   = typeof e.pressure !== 'undefined' ? e.pressure : 0.5;
         };
 
-        // TODO: not implemented method
         this.getTouches = function() {
-            var touches = [];
+            var touches = [], i = 0;
             for(var k in pkg.$pointerPressedEvents) {
-
+                var pe = pkg.$pointerPressedEvents[k];
+                touches[i++] = {
+                    pageX      : pe.pageX,
+                    pageY      : pe.pageY,
+                    identifier : pe.identifier,
+                    target     : pe.target,
+                    pressure   : pe.pressure,
+                    pointerType: pe.stub.pointerType
+                }
             }
+            return touches;
         };
     }
 ]);
@@ -8177,7 +8191,10 @@ pkg.MouseWheelSupport = Class([
 // global mouse move events handler (registered by drag out a canvas surface)
 // has to be removed every time a mouse button released with the given function
 function $cleanDragFix() {
-    if ($tmpWinMouseMoveListener != null && $pointerPressedEvents[LMOUSE] == null && $pointerPressedEvents[RMOUSE] == null) {
+    if ($tmpWinMouseMoveListener != null      &&
+        $pointerPressedEvents[LMOUSE] == null &&
+        $pointerPressedEvents[RMOUSE] == null   )
+    {
         window.removeEventListener("mousemove", $tmpWinMouseMoveListener, true);
         $tmpWinMouseMoveListener = null;
         return true;
@@ -9107,9 +9124,8 @@ zebkit.package("ui", function(pkg, Class) {
                     if (this.code === 0 && e.key != null && e.key.length() === 1) {
                         this.code = e.key.charCodeAt(0);
                         this.ch   = e.key;
-                    }
-                    else {
-                        this.ch = e.charCode > 0 && (this.code >= 47 || this.code === 32) ? String.fromCharCode(e.charCode) : 0;
+                    } else {
+                        this.ch = e.charCode > 0 && this.code >= 32 ? String.fromCharCode(e.charCode) : 0;
                     }
                 }
 
@@ -14703,10 +14719,13 @@ pkg.ShortcutManager = Class(pkg.Manager, [
                 var c = this.keyCommands[e.code];
                 if (c && c[e.mask] != null) {
                     c = c[e.mask];
-                    pkg.events._.commandFired(c);
+                    pkg.events._.fireEvent(c);
                     if (fo[c.command]) {
-                         if (c.args && c.args.length > 0) fo[c.command].apply(fo, c.args);
-                         else fo[c.command]();
+                        if (c.args && c.args.length > 0) {
+                            fo[c.command].apply(fo, c.args);
+                        } else {
+                            fo[c.command]();
+                        }
                     }
                 }
             }
@@ -15243,6 +15262,8 @@ pkg.zCanvas = Class(pkg.HtmlCanvas, [
 
             var d = this.getComponentAt(x, y);
 
+            console.log("zCanvas.$pointerPressed() " + d.clazz.$name);
+
             if (d != null && d.isEnabled === true) {
                 if (pkg.$pointerOwner[e.identifier] !== d) {
                     pkg.$pointerOwner[e.identifier] = d;
@@ -15253,8 +15274,8 @@ pkg.zCanvas = Class(pkg.HtmlCanvas, [
 
                 // TODO: prove the solution (returning true) !?
                 if (pkg.events.fireEvent("pointerPressed", e.update(d, x, y)) === true) {
-                    delete pkg.$pointerPressedOwner[e.identifier];
-                    return true;
+                   delete pkg.$pointerPressedOwner[e.identifier];
+                   return true;
                 }
             }
 
@@ -19759,7 +19780,7 @@ pkg.Tabs = Class(pkg.Panel, pkg.$ViewsSetterMix, [
                 xx    = (this.orient === "right"  ? this.tabAreaX : this.tabAreaX + this.sideSpace),
                 yy    = (this.orient === "bottom" ? this.tabAreaY : this.tabAreaY + this.sideSpace);
 
-            for(var i = 0;i < count; i++ ){
+            for(var i = 0; i < count; i++ ){
                 var r = this.getTabBounds(i);
 
                 r.x = xx;
@@ -20827,7 +20848,7 @@ pkg.Toolbar = Class(pkg.Panel, [
      * @method addDecorative
      */
     function addDecorative(c){
-        return this.$super(this.insert, this.kids.length, null, c);
+        return this.$getSuper("insert").call(this, this.kids.length, null, c);
     },
 
     function insert(i,id,d){
@@ -24085,7 +24106,7 @@ pkg.WinLayer = Class(pkg.CanvasLayer, [
             return false;
         };
 
-        this.layoutKeyPressed = function(e){
+        this.layerKeyPressed = function(e){
             if (this.kids.length > 0        &&
                 e.code === pkg.KeyEvent.TAB &&
                 e.shiftKey                     )
@@ -24274,7 +24295,7 @@ pkg.WinLayer = Class(pkg.CanvasLayer, [
 
     function kidRemoved(index,lw){
         try {
-            this.$super(this.kidRemoved,index, lw);
+            this.$getSuper("kidRemoved").call(this, index, lw);
 
             var l = this.winsListeners[lw];
             if (this.activeWin === lw) {
@@ -25399,7 +25420,7 @@ pkg.Menu = Class(pkg.CompList, [
      */
     function addDecorative(c) {
         this.decoratives[c] = true;
-        this.$super(this.insert, this.kids.length, null, c);
+        this.$getSuper("insert").call(this, this.kids.length, null, c);
     },
 
     function kidRemoved(i,c) {
@@ -25608,7 +25629,8 @@ pkg.PopupLayer = Class(pkg.CanvasLayer, [
             }
 
             if (this.kids.length > 0) {
-                this.removeAll();
+                //this.removeAll();
+
             }
 
             return b;

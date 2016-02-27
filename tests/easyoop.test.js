@@ -1506,7 +1506,7 @@ if (typeof(zebkit) === "undefined") {
             var B = new Class(A, [
                 function a() { return 111; },
                 function b() {
-                    return this.$super(this.a);
+                    return this.$getSuper("a").call(this);
                 }
             ]);
 
@@ -1518,7 +1518,7 @@ if (typeof(zebkit) === "undefined") {
                 },
 
                 function c(p1, p2) {
-                    return this.$super(this.a, p1, p2) + 1;
+                    return this.$getSuper("a").call(this, p1, p2) + 1;
                 }
             ]);
 
@@ -2406,7 +2406,7 @@ if (typeof(zebkit) === "undefined") {
             // more deep super calling
             var B = Class(A, [
                 function b() {
-                    return this.$super(this.a);
+                    return this.$getSuper("a").call(this);
                 }
             ]), b = new B();
 
@@ -2419,7 +2419,7 @@ if (typeof(zebkit) === "undefined") {
 
             b.extend(I, [
                 function b() {
-                    return this.$super(this.a, 121);
+                    return this.$getSuper("a").call(this, 121);
                 }
             ])
 

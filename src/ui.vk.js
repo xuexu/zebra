@@ -392,7 +392,7 @@ zebkit.package("ui.vk", function(pkg, Class) {
     // 4) Multiple single char VK variants:
     //    "ABCD"
     //
-    // 5) Multiple caharcter single key
+    // 5) Multiple character single key
     //    [ "AA" ]  or with variants [ "AA", ["BB"], ["CC"] ]
     //
     pkg.VKey = Class(pkg.VKeyBase, [
@@ -495,13 +495,13 @@ zebkit.package("ui.vk", function(pkg, Class) {
         function _pointerPressed(e) {
             if (this.$sticked == true) {
                 this.$sticked = false;
-                this.$super(this._pointerReleased, e);
+                this.$getSuper("_pointerReleased").call(this, e);
                 this.fireVkReleased(this.code, this.ch, this.mask);
             }
             else {
                 this.$super(e);
                 this.fireVkPressed(this.code, this.ch, this.mask);
-                if (this.mask != 0) {
+                if (this.mask !== 0) {
                     this.$sticked = true;
                 }
             }
@@ -620,8 +620,7 @@ zebkit.package("ui.vk", function(pkg, Class) {
             this.catchFired = function() {
                 if (this.menu.parent != null) {
                     this.menu.removeMe();
-                }
-                else {
+                } else {
                     var o = zebkit.layout.toParentOrigin(this);
                     this.menu.select(-1);
                     this.menu.toPreferredSize();
@@ -641,6 +640,9 @@ zebkit.package("ui.vk", function(pkg, Class) {
             this.options = options.slice(0);
             var $this = this;
             this.menu.bind(function(src, i) {
+                console.log("menu selected " + i);
+
+
                 if (src.selectedIndex >= 0) {
                     var vk = $this.findVK("vkOptionSelected");
                     if (vk != null) {

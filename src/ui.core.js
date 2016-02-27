@@ -2931,7 +2931,7 @@ pkg.ShortcutManager = Class(pkg.Manager, [
                 var c = this.keyCommands[e.code];
                 if (c && c[e.mask] != null) {
                     c = c[e.mask];
-                    pkg.events._.commandFired(c);
+                    pkg.events._.fireEvent(c);
                     if (fo[c.command]) {
                         if (c.args && c.args.length > 0) {
                             fo[c.command].apply(fo, c.args);
@@ -3474,6 +3474,8 @@ pkg.zCanvas = Class(pkg.HtmlCanvas, [
 
             var d = this.getComponentAt(x, y);
 
+            console.log("zCanvas.$pointerPressed() " + d.clazz.$name);
+
             if (d != null && d.isEnabled === true) {
                 if (pkg.$pointerOwner[e.identifier] !== d) {
                     pkg.$pointerOwner[e.identifier] = d;
@@ -3484,8 +3486,8 @@ pkg.zCanvas = Class(pkg.HtmlCanvas, [
 
                 // TODO: prove the solution (returning true) !?
                 if (pkg.events.fireEvent("pointerPressed", e.update(d, x, y)) === true) {
-                    delete pkg.$pointerPressedOwner[e.identifier];
-                    return true;
+                   delete pkg.$pointerPressedOwner[e.identifier];
+                   return true;
                 }
             }
 

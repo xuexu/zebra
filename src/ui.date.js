@@ -856,7 +856,7 @@ zebkit.package("ui.date", function(pkg, Class) {
         function setFormat(format) {
             if (this.format != format) {
                 this.format = format;
-                this.$super(this.setValue, this.$format(this.date));
+                this.$getSuper("setValue").call(this, this.$format(this.date));
             }
         },
 

@@ -3802,7 +3802,7 @@ pkg.Tabs = Class(pkg.Panel, pkg.$ViewsSetterMix, [
                 xx    = (this.orient === "right"  ? this.tabAreaX : this.tabAreaX + this.sideSpace),
                 yy    = (this.orient === "bottom" ? this.tabAreaY : this.tabAreaY + this.sideSpace);
 
-            for(var i = 0;i < count; i++ ){
+            for(var i = 0; i < count; i++ ){
                 var r = this.getTabBounds(i);
 
                 r.x = xx;
@@ -4870,7 +4870,7 @@ pkg.Toolbar = Class(pkg.Panel, [
      * @method addDecorative
      */
     function addDecorative(c){
-        return this.$super(this.insert, this.kids.length, null, c);
+        return this.$getSuper("insert").call(this, this.kids.length, null, c);
     },
 
     function insert(i,id,d){

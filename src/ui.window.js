@@ -189,7 +189,7 @@ pkg.WinLayer = Class(pkg.CanvasLayer, [
             return false;
         };
 
-        this.layoutKeyPressed = function(e){
+        this.layerKeyPressed = function(e){
             if (this.kids.length > 0        &&
                 e.code === pkg.KeyEvent.TAB &&
                 e.shiftKey                     )
@@ -378,7 +378,7 @@ pkg.WinLayer = Class(pkg.CanvasLayer, [
 
     function kidRemoved(index,lw){
         try {
-            this.$super(this.kidRemoved,index, lw);
+            this.$getSuper("kidRemoved").call(this, index, lw);
 
             var l = this.winsListeners[lw];
             if (this.activeWin === lw) {
@@ -1503,7 +1503,7 @@ pkg.Menu = Class(pkg.CompList, [
      */
     function addDecorative(c) {
         this.decoratives[c] = true;
-        this.$super(this.insert, this.kids.length, null, c);
+        this.$getSuper("insert").call(this, this.kids.length, null, c);
     },
 
     function kidRemoved(i,c) {
@@ -1712,7 +1712,8 @@ pkg.PopupLayer = Class(pkg.CanvasLayer, [
             }
 
             if (this.kids.length > 0) {
-                this.removeAll();
+                //this.removeAll();
+
             }
 
             return b;

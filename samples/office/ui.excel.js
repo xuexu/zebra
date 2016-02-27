@@ -29,7 +29,7 @@ zebkit.package("ui.excel", function(pkg) {
 
     pkg.Matrix = Class(zebkit.data.Matrix, [
         function $get(row, col) {
-            return this.$super(this.get, row, col);
+            return this.$getSuper("get").call(this, row, col);
         },
 
         function get(row, col) {
