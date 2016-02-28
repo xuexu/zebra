@@ -15262,8 +15262,6 @@ pkg.zCanvas = Class(pkg.HtmlCanvas, [
 
             var d = this.getComponentAt(x, y);
 
-            console.log("zCanvas.$pointerPressed() " + d.clazz.$name);
-
             if (d != null && d.isEnabled === true) {
                 if (pkg.$pointerOwner[e.identifier] !== d) {
                     pkg.$pointerOwner[e.identifier] = d;

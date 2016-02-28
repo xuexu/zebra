@@ -640,9 +640,6 @@ zebkit.package("ui.vk", function(pkg, Class) {
             this.options = options.slice(0);
             var $this = this;
             this.menu.bind(function(src, i) {
-                console.log("menu selected " + i);
-
-
                 if (src.selectedIndex >= 0) {
                     var vk = $this.findVK("vkOptionSelected");
                     if (vk != null) {
