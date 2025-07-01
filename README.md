@@ -199,6 +199,7 @@ Apache License, Version 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
 
 # Contact
 
-   * e-mail  : ask@zebkit.org
+   * e-mail  : faceheap@gmail.com
+   * website : http://faceheap.com
    * linkedin: http://nl.linkedin.com/pub/andrei-vishneuski/14/525/34b/
 
